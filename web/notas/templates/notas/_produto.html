@@ -1,0 +1,62 @@
+{% extends "core/modal.html" %}{% load gfp %}
+{% block modal_titulo %}{% if voltar %}<button type="button" class="botao botao-icone botao-fantasma np-voltar" data-url="{{ voltar }}" onclick="GFP.abrirModal(this.dataset.url)" title="Voltar" aria-label="Voltar">{% icone "arrow_back" %}</button>{% endif %}{{ nome }}{% endblock %}
+{% block modal_subtitulo %}<div class="texto-3">Histórico de preço{% if ean %} · código de barras <span class="num">{{ ean }}</span>{% endif %}</div>{% endblock %}
+{% block modal_corpo %}
+<div class="np-controles">
+  <div class="campo np-juntar">
+    <label for="produto-juntar">Juntar com produtos cujo nome contenha</label>
+    <input type="search" id="produto-juntar" name="juntar" value="{{ juntar }}" placeholder="ex.: PATINHO" autocomplete="off" maxlength="60"
+           hx-get="{% url 'notas:produto' %}" hx-trigger="input changed delay:400ms, search" hx-include="#produto-params"
+           hx-target="#produto-resultado" hx-select="#produto-resultado" hx-swap="outerHTML" hx-sync="this:replace">
+    <div class="ajuda">Cada loja escreve o nome de um jeito. Produtos com código de barras (EAN) já são juntados sozinhos; carnes e pesados, não.</div>
+  </div>
+  <div id="produto-params" hidden><input type="hidden" name="grupo" value="{{ grupo }}"><input type="hidden" name="voltar" value="{{ voltar }}"></div>
+</div>
+
+<div id="produto-resultado" class="pilha">
+  <p class="texto-3 mb-0">{{ categoria }} · {{ n_lojas }} loja{{ n_lojas|pluralize }} · todo o histórico, em todas as lojas (os filtros da página não se aplicam aqui){% if juntar %} · juntando os nomes com "{{ juntar }}"{% endif %}.</p>
+
+  <div class="grade g-4">
+    {% include "core/_kpi.html" with rotulo="Último preço pago" valor=ultimo_valor icone="sell" delta=delta_ultimo delta_classe=classe_ultimo detalhe=ultimo_detalhe %}
+    {% include "core/_kpi.html" with rotulo="Comprado" valor=comprado icone="shopping_cart" detalhe=comprado_detalhe %}
+    {% include "core/_kpi.html" with rotulo="Menor preço" valor=painel.menor.preco|brl icone="south" cor="verde" detalhe=menor_detalhe %}
+    {% include "core/_kpi.html" with rotulo="Maior preço" valor=painel.maior.preco|brl icone="north" cor="vermelho" detalhe=maior_detalhe %}
+  </div>
+
+  <div class="grade g-3-2">
+    <section class="cartao">
+      <div class="cartao-cabecalho"><h2>Preço pago ao longo do tempo</h2><div class="descricao">Por unidade, já com desconto. Uma linha por loja.</div></div>
+      {% grafico fig_preco 340 %}
+    </section>
+    <section class="cartao">
+      <div class="cartao-cabecalho"><h2>Último preço em cada loja</h2></div>
+      {% grafico fig_lojas altura_lojas %}
+    </section>
+  </div>
+
+  <section>
+    <div class="cartao-cabecalho"><h2>Compra por compra</h2><div class="descricao">Clique numa compra para ver a nota completa.</div></div>
+    <div class="tabela-rolagem alta">
+      <table class="tabela">
+        <thead><tr><th>Data</th><th>Loja</th><th>Produto</th><th class="dir">Qtde</th><th>Un.</th><th class="dir">Preço</th><th class="dir">Desconto</th><th class="dir">Preço pago/un.</th><th class="dir">Total pago</th></tr></thead>
+        <tbody>
+          {% for c in compras %}
+          <tr class="clicavel" data-url="{% url 'notas:nota' c.nota_id %}?voltar={{ aqui|urlencode:'' }}" onclick="GFP.abrirModal(this.dataset.url, {tamanho: 'medio'})"
+              tabindex="0" onkeydown="if (event.key === 'Enter') this.click()">
+            <td>{{ c.data|date:"d/m/Y" }}</td>
+            <td>{{ c.loja }}</td>
+            <td>{{ c.descricao }}</td>
+            <td class="valor">{{ c.quantidade|qtde }}</td>
+            <td>{{ c.unidade }}</td>
+            <td class="valor">{{ c.valor_unitario|brl }}</td>
+            <td class="valor">{% if c.valor_desconto %}−{{ c.valor_desconto|brl }}{% else %}—{% endif %}</td>
+            <td class="valor">{% if c.brinde %}<span class="etiqueta verde" title="Desconto de 90% ou mais: vale o preço de etiqueta">brinde</span> {% endif %}{{ c.preco|brl }}</td>
+            <td class="valor">{{ c.pago|brl }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

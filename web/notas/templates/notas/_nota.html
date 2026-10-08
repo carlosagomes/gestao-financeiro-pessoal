@@ -1,0 +1,56 @@
+{% extends "core/modal.html" %}{% load gfp %}
+{% block modal_titulo %}{% if voltar %}<button type="button" class="botao botao-icone botao-fantasma np-voltar" data-url="{{ voltar }}" onclick="GFP.abrirModal(this.dataset.url)" title="Voltar" aria-label="Voltar">{% icone "arrow_back" %}</button>{% endif %}{{ nota.emitente_fantasia|default:nota.emitente_nome|default:"Nota" }}{% endblock %}
+{% block modal_subtitulo %}<div class="texto-3">{{ nota.data_emissao|date:"d/m/Y \à\s H:i" }} · {{ categoria }}</div>{% endblock %}
+{% block modal_corpo %}
+
+<div class="cartao np-nota-cabecalho">
+  <dl class="np-dados">
+    <div><dt>Emitente</dt><dd>{{ nota.emitente_nome|default:"—" }}</dd></div>
+    <div><dt>CNPJ</dt><dd class="num">{{ nota.emitente_cnpj|default:"—" }}</dd></div>
+    <div><dt>Número / série</dt><dd class="num">{{ nota.numero|default:"—" }} / {{ nota.serie|default:"—" }}</dd></div>
+    <div class="largo"><dt>Endereço</dt><dd>{{ endereco|default:"—" }}</dd></div>
+    <div class="duplo"><dt>Chave de acesso</dt><dd class="num np-chave">{{ chave }}</dd></div>
+    <div><dt>Crédito</dt><dd>{% if nota.credito is not None %}{{ nota.credito|brl }}{% else %}—{% endif %}{% if nota.situacao_credito %} <span class="etiqueta cinza">{{ nota.situacao_credito|lower|capfirst }}</span>{% endif %}</dd></div>
+  </dl>
+</div>
+
+<section>
+  <div class="cartao-cabecalho"><h2>Itens <span class="etiqueta cinza">{{ linhas|length }}</span></h2>
+    <div class="descricao">Clique num item para ver o histórico de preço do produto.</div></div>
+  {% if linhas %}
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <thead><tr><th>Produto</th><th class="dir">Qtde</th><th>Un.</th><th class="dir">Preço</th><th class="dir">Desconto</th><th class="dir">Pago</th></tr></thead>
+      <tbody>
+        {% for l in linhas %}
+        <tr class="clicavel" data-url="{{ l.url }}" onclick="GFP.abrirModal(this.dataset.url, {tamanho: ''})" tabindex="0"
+            onkeydown="if (event.key === 'Enter') this.click()">
+          <td class="quebra">{{ l.item.descricao }}{% if l.item.codigo %}<br><small class="num">cód. {{ l.item.codigo }}</small>{% endif %}</td>
+          <td class="valor">{{ l.item.quantidade|qtde }}</td>
+          <td>{{ l.item.unidade }}</td>
+          <td class="valor">{{ l.item.valor_unitario|brl }}</td>
+          <td class="valor">{% if l.item.valor_desconto %}−{{ l.item.valor_desconto|brl }}{% else %}—{% endif %}</td>
+          <td class="valor">{{ l.pago|brl }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        {% if desconto %}<tr><td colspan="5" class="valor texto-2">Descontos</td><td class="valor">−{{ desconto|brl }}</td></tr>{% endif %}
+        <tr class="total"><td colspan="5">Total da nota</td><td class="valor">{{ nota.valor_total|brl }}</td></tr>
+      </tfoot>
+    </table>
+  </div>
+  {% else %}<div class="vazio">{% icone "inbox" %}A nota não trouxe os itens.</div>{% endif %}
+</section>
+
+<section>
+  <div class="cartao-cabecalho"><h2>Pagamento</h2></div>
+  {% if pagamentos %}
+  <div class="np-pagamentos">
+    {% for pg in pagamentos %}
+    <div class="np-pagamento">{% icone "credit_card" %}<span>{{ pg.forma|default:"Não informado" }}{% if pg.bandeira %} <small>{{ pg.bandeira }}</small>{% endif %}</span><b class="num">{{ pg.valor|brl }}</b></div>
+    {% endfor %}
+  </div>
+  {% else %}<p class="texto-3">A nota não informa a forma de pagamento.</p>{% endif %}
+</section>
+{% endblock %}

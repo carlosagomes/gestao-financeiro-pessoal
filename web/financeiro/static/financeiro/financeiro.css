@@ -1,0 +1,77 @@
+/* Resumo e Lançamentos (só tokens do app.css: o tema escuro vem junto). */
+
+/* ---------- Resumo ---------- */
+.seletor-ano select { width: auto; min-width: 104px; font-weight: 600; }
+
+/* "Por mês": uma cor por coluna, como na planilha (fundo claro + texto da mesma cor).
+   Seletores com .tabela.tabela-mes tbody para vencer o hover genérico de .tabela. */
+.tabela.tabela-mes tbody td { padding-top: 8px; padding-bottom: 8px; }
+.tabela.tabela-mes tbody td.mes { font-weight: 600; }
+.tabela.tabela-mes tbody td.mes.previsao { color: var(--texto-3); font-style: italic; font-weight: 400; }
+.tabela.tabela-mes tbody td.c-entrada { background: var(--verde-suave); color: var(--verde); }
+.tabela.tabela-mes tbody td.c-saida { background: var(--vermelho-suave); color: var(--vermelho); }
+.tabela.tabela-mes tbody td.c-saldo { background: var(--azul-suave); color: var(--azul); font-weight: 700; }
+.tabela.tabela-mes tbody td.c-pagar { background: var(--laranja-suave); color: var(--laranja); font-weight: 700; }
+.tabela.tabela-mes tbody td.zero { color: var(--texto-3); font-weight: 400; }
+.tabela.tabela-mes tbody td.c-saldo.negativo { color: var(--vermelho); }
+.tabela.tabela-mes td.status { width: 1%; }
+.tabela.tabela-mes tbody tr.clicavel:hover td { box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--texto) 5%, transparent); }
+.tabela.tabela-mes tbody tr.clicavel:focus-visible { outline: 3px solid var(--foco); outline-offset: -3px; }
+.tabela.tabela-mes tbody tr.total td { background: var(--lateral-2); color: #fff; font-weight: 700; box-shadow: none; }
+.tabela.tabela-mes tbody tr.total td:first-child { letter-spacing: .02em; }
+/* No celular a tabela rola de lado: o mês fica parado à esquerda. */
+.tabela.tabela-mes th:first-child, .tabela.tabela-mes tbody td:first-child { position: sticky; left: 0; z-index: 1; background: var(--superficie); }
+.tabela.tabela-mes th:first-child { z-index: 2; background: var(--superficie-2); }
+.tabela.tabela-mes tbody tr.total td:first-child { background: var(--lateral-2); }
+
+/* ---------- Lançamentos ---------- */
+.filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px 16px; padding: 14px 18px; }
+.filtros .campo-ano { width: 104px; }
+.filtros .campo-mes { width: 176px; }
+.filtros .campo-busca { flex: 1 1 220px; }
+.filtros .segmentado span { padding: 8px 12px; }
+
+.kpi-alvo { display: contents; }
+
+.acoes-tabela { flex-wrap: wrap; justify-content: flex-end; }
+#grade-lancamentos { margin-top: 2px; }
+#grade-lancamentos.atualizando { opacity: .55; transition: opacity .15s; }
+#grade-lancamentos .tabulator-cell .icone { font-size: 20px; }
+#grade-lancamentos .pago-sim { color: var(--verde); font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24; }
+#grade-lancamentos .pago-nao { color: var(--texto-3); }
+#grade-lancamentos .tabulator-cell[tabulator-field="pago"] { cursor: pointer; }
+#grade-lancamentos .tabulator-cell[tabulator-field="valor"] { font-variant-numeric: tabular-nums; font-weight: 600; }
+#grade-lancamentos .tabulator-col .tabulator-col-title { font-size: 12px; font-weight: 600; }
+#grade-lancamentos .tabulator-col[aria-sort="none"] .tabulator-col-sorter { opacity: 0; transition: opacity .12s; }
+#grade-lancamentos .tabulator-col[aria-sort="none"]:hover .tabulator-col-sorter { opacity: .6; }
+#grade-lancamentos .tabulator-placeholder-contents { color: var(--texto-3); font-size: 14px; font-weight: 500; }
+#grade-lancamentos .tabulator-row .tabulator-cell.salvando { box-shadow: inset 0 0 0 9999px color-mix(in srgb, var(--primaria) 10%, transparent); }
+#grade-lancamentos .tabulator-row .tabulator-cell.erro { box-shadow: inset 0 0 0 2px var(--vermelho); }
+#grade-lancamentos .tabulator-row .tabulator-cell .etiqueta { font-size: 11.5px; }
+#grade-lancamentos input[type=checkbox] { vertical-align: middle; }
+
+/* Modais */
+.opcoes-lista { display: grid; gap: 6px; }
+.campo.cresce { flex: 1 1 200px; }
+.tabela-historico .alteracao .icone { font-size: 16px; color: var(--texto-3); }
+.tabela-historico .antes { color: var(--texto-3); text-decoration: line-through; }
+.lt-item.pendente::before { background: var(--laranja); }
+
+@media (max-width: 860px) {
+  .some-celular { display: none; }
+  .acoes-tabela { margin-left: 0; width: 100%; justify-content: flex-start; }
+  .filtros .campo-mes { flex: 1 1 150px; }
+}
+@media (max-width: 520px) {
+  .filtros .campo-ano { flex: 1 1 90px; }
+  .filtros .segmentado { width: 100%; }
+  .filtros .segmentado label { flex: 1; text-align: center; }
+  .filtros .campo { flex: 1 1 100%; }
+  .filtros .campo-ano, .filtros .campo-mes { flex: 1 1 40%; }
+  .acoes-tabela .botao { height: 32px; padding: 0 10px; font-size: 13px; }
+  /* KPIs sem minigráfico: 2 × 2 no celular em vez de 4 cartões empilhados */
+  .grade.kpis-compactos { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .kpis-compactos .kpi { padding: 12px 14px; }
+  .kpis-compactos .kpi-valor { font-size: 18px; }
+  .kpis-compactos .kpi-rotulo { font-size: 12px; }
+}

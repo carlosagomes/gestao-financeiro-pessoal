@@ -1,0 +1,26 @@
+# Produção: soma este arquivo ao docker-compose.yml.
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# Precisa no .env: DOMINIO=financas.seudominio.com.br, DJANGO_DEBUG=0, DJANGO_HTTPS=1,
+# DJANGO_ALLOWED_HOSTS e DJANGO_CSRF_TRUSTED_ORIGINS com o domínio.
+services:
+  db:
+    ports: !reset []           # banco não fica exposto fora do Docker
+  web:
+    ports: !reset []
+  caddy:
+    image: caddy:2-alpine
+    environment:
+      DOMINIO: ${DOMINIO:?defina DOMINIO no .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_dados:/data
+      - caddy_config:/config
+    depends_on: [web]
+    restart: unless-stopped
+volumes:
+  caddy_dados:
+  caddy_config:

@@ -1,0 +1,16 @@
+/* Horas e informes PJ: só o que os componentes comuns não cobrem. */
+.kpis-informe { margin-top: 16px; }
+.kpis-informe .kpi { background: var(--superficie-2); box-shadow: none; padding: 14px 16px; }
+.kpis-informe .kpi-valor { font-size: 22px; }
+.seletor-mes { display: flex; align-items: center; gap: 4px; }
+.seletor-mes input[type=month] { width: 170px; height: 34px; }
+.tabela tr.atual td { background: var(--primaria-suave); }
+.tabela tr.clicavel:hover td { background: var(--superficie-2); }
+.tabela td .etiqueta { margin-left: 6px; }
+.calculado { font-size: 11px; color: var(--texto-3); margin-left: 4px; }
+.salvar-informe { margin-top: 16px; }
+@media (max-width: 640px) {
+  .topo-acoes { flex-wrap: nowrap; flex: none; gap: 4px; }  /* os botões do topo numa linha só */
+  .seletor-mes { margin-left: 0; width: 100%; }
+  .seletor-mes input[type=month] { flex: 1; width: auto; }
+}

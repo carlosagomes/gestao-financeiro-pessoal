@@ -1,0 +1,6 @@
+{% load gfp %}{# Linha do subtítulo: última busca automática do serviço (Tarefa ok) e o atalho para Configurações. #}
+<div class="subtitulo">
+  {% if sync.ultima_ok %}Busca automática: última em {{ sync.ultima_ok.terminada_em|date:"d/m/Y" }} às {{ sync.ultima_ok.terminada_em|date:"H:i" }}
+  {% else %}A busca automática da {{ nome }} ainda não rodou{% endif %}
+  · <a href="{% url 'integracoes:configuracoes' %}">Configurações</a>{% if extra %} · {{ extra }}{% endif %}
+</div>

@@ -1,0 +1,22 @@
+{% extends "core/modal.html" %}{% load gfp %}
+{% block modal_titulo %}{{ t.get_servico_display }} · {% if t.tipo == "reprocessar" %}releitura{% else %}sincronização{% endif %}{% endblock %}
+{% block modal_subtitulo %}<div class="texto-3">{{ quando }} · {{ origem }} · <span class="etiqueta {{ cor }}">{{ t.get_status_display }}</span></div>{% endblock %}
+{% block modal_corpo %}
+{% if t.status == "erro" and t.mensagem %}
+  <div class="aviso erro">{% icone "error" %}<div>{{ t.mensagem }}</div></div>
+{% elif t.status == "ok" and t.mensagem %}
+  <div class="aviso sucesso">{% icone "check_circle" %}<div>{{ t.mensagem }}</div></div>
+{% elif t.status == "rodando" or t.status == "pendente" %}
+  <div class="aviso info">{% icone "sync" %}<div>{{ t.progresso|default:"Na fila" }}</div></div>
+{% endif %}
+<dl class="servico-dados">
+  <div><dt>Criada</dt><dd>{{ t.criada_em|date:"d/m/Y H:i:s" }}</dd></div>
+  {% if t.iniciada_em %}<div><dt>Início</dt><dd>{{ t.iniciada_em|date:"d/m/Y H:i:s" }}</dd></div>{% endif %}
+  {% if t.terminada_em %}<div><dt>Fim</dt><dd>{{ t.terminada_em|date:"d/m/Y H:i:s" }}</dd></div>{% endif %}
+</dl>
+{% if t.log %}
+  <pre class="registro">{{ t.log }}</pre>
+{% else %}
+  <div class="vazio">{% icone "notes" %}Sem registro{% if t.origem == "sistema antigo" %} (importada do sistema antigo){% endif %}</div>
+{% endif %}
+{% endblock %}

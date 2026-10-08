@@ -1,0 +1,2 @@
+{% load gfp %}<button class="botao botao-enviar{% if classe %} {{ classe }}{% endif %}" type="button" data-url="{{ url }}" title="Enviar o PDF da conta"
+  onclick="GFP.abrirModal(this.dataset.url, {tamanho: 'medio'})">{% icone "upload_file" %}<span class="rotulo-acao">{{ rotulo|default:"Enviar PDF" }}</span></button>

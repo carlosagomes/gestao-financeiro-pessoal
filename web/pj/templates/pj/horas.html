@@ -1,0 +1,168 @@
+{% extends "core/base.html" %}{% load static gfp %}
+{% block titulo %}Horas e informes{% endblock %}
+{% block cabeca %}
+<link rel="stylesheet" href="{% static 'pj/pj.css' %}">
+<script src="{% static 'pj/horas.js' %}" defer></script>
+{% endblock %}
+{% block cabecalho %}Horas e informes{% endblock %}
+{% block subtitulo %}<div class="subtitulo">Informe mensal da prestação de serviço PJ e o Salário que caiu na conta</div>{% endblock %}
+
+{% block conteudo %}
+{{ inicial|json_script:"informe-inicial" }}
+<div class="pilha" style="gap:20px" x-data="informePJ(JSON.parse(document.getElementById('informe-inicial').textContent))">
+
+  <form method="post" class="cartao" novalidate>{% csrf_token %}
+    <input type="hidden" name="mes" value="{{ mes }}">
+    <div class="cartao-cabecalho">
+      <h2>Informe de {{ mes|mes_rotulo }}</h2>
+      {% if informe.previsao %}<span class="etiqueta roxo">{% icone "auto_graph" %}Previsão</span>
+      {% elif novo %}<span class="etiqueta cinza">Novo · valores do último informe</span>{% endif %}
+      <div class="acoes seletor-mes">
+        <a class="botao botao-icone botao-fantasma" href="?mes={{ mes_anterior }}" title="Mês anterior" aria-label="Mês anterior">{% icone "chevron_left" %}</a>
+        <input type="month" value="{{ mes }}" aria-label="Mês do informe" @change="$event.target.value && (location.search = '?mes=' + $event.target.value)">
+        <a class="botao botao-icone botao-fantasma" href="?mes={{ mes_seguinte }}" title="Próximo mês" aria-label="Próximo mês">{% icone "chevron_right" %}</a>
+      </div>
+      <div class="descricao">Copie os números do e-mail do informe. O valor da NF é horas × valor hora + sobreaviso (1/3 da hora) − plano de saúde.</div>
+    </div>
+
+    {% if erro_informe %}<div class="aviso erro" style="margin-bottom:14px">{% icone "error" %}<div>{{ erro_informe }}</div></div>{% endif %}
+    {% if informe.previsao %}<div class="aviso info" style="margin-bottom:14px">{% icone "auto_graph" %}<div>Este mês ainda é uma previsão. Quando o informe chegar, preencha com os números dele e salve.</div></div>{% endif %}
+
+    <div class="form-grade">
+      <div class="campo">
+        <label for="horas">Horas mensais (h:mm)</label>
+        <input type="text" id="horas" name="horas" inputmode="numeric" placeholder="178:51" autocomplete="off"
+               value="{{ valores.horas }}" x-model="horas" :aria-invalid="!horasValidas">
+        <span class="erro" x-show="!horasValidas" x-cloak>Use h:mm, por exemplo 178:51</span>
+      </div>
+      <div class="campo">
+        <label for="horas_sobreaviso">Horas de sobreaviso</label>
+        <input type="text" id="horas_sobreaviso" name="horas_sobreaviso" inputmode="decimal" autocomplete="off"
+               value="{{ valores.horas_sobreaviso }}" x-model="sobreaviso">
+      </div>
+      <div class="campo">
+        <label for="valor_hora">Valor hora (R$)</label>
+        <input type="text" id="valor_hora" name="valor_hora" inputmode="decimal" autocomplete="off"
+               value="{{ valores.valor_hora }}" x-model="valor_hora">
+      </div>
+      <div class="campo">
+        <label for="plano">Plano de saúde (desconto)</label>
+        <input type="text" id="plano" name="plano" inputmode="decimal" autocomplete="off"
+               value="{{ valores.plano }}" x-model="plano">
+      </div>
+      <div class="campo">
+        <label for="valor_nf">Valor da NF no informe</label>
+        <input type="text" id="valor_nf" name="valor_nf" inputmode="decimal" autocomplete="off" placeholder="Opcional"
+               value="{{ valores.valor_nf }}" x-model="nf">
+        <span class="ajuda">"Valor para emissão da NF" do e-mail.</span>
+      </div>
+    </div>
+
+    <div class="grade g-4 kpis-informe">
+      <div class="cartao kpi">
+        <div class="kpi-rotulo">{% icone "schedule" %}Valor horas trabalhadas</div>
+        <div class="kpi-valor" x-text="brl(valorNormal)">{{ previa.valor_normal|brl }}</div>
+        <div class="kpi-detalhe" x-text="(horasValidas ? horas.trim() : '—') + ' h × ' + brl(valorHora)">{{ valores.horas }} h × {{ previa.valor_hora|brl }}</div>
+      </div>
+      <div class="cartao kpi">
+        <div class="kpi-rotulo">{% icone "notifications_active" %}Valor do sobreaviso</div>
+        <div class="kpi-valor" x-text="brl(valorSobreaviso)">{{ previa.valor_sobreaviso|brl }}</div>
+        <div class="kpi-detalhe" x-text="'Hora de sobreaviso = ' + brl(horaSobreaviso) + ' (1/3 da hora)'">Hora de sobreaviso = 1/3 da hora</div>
+      </div>
+      <div class="cartao kpi">
+        <div class="kpi-rotulo">{% icone "payments" %}Total bruto</div>
+        <div class="kpi-valor" x-text="brl(bruto)">{{ previa.total_bruto|brl }}</div>
+        <div class="kpi-detalhe">Horas + sobreaviso</div>
+      </div>
+      <div class="cartao kpi verde">
+        <div class="kpi-rotulo">{% icone "receipt_long" %}Valor da NF calculado</div>
+        <div class="kpi-valor" x-text="brl(nfCalculada)">{{ previa.total_calculado|brl }}</div>
+        <div class="kpi-detalhe">
+          <span x-show="diferencaNf === null">Total bruto − plano de saúde</span>
+          <span x-show="diferencaNf !== null && Math.abs(diferencaNf) < 0.02" x-cloak class="cor-entrada">{% icone "check_circle" %} Igual ao informe</span>
+          <span x-show="diferencaNf !== null && Math.abs(diferencaNf) >= 0.02" x-cloak class="cor-pagar">{% icone "warning" %} <span x-text="'Informe: ' + brl(nfInformada) + ' (diferença ' + brl(diferencaNf) + ')'"></span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="linha salvar-informe">
+      <button class="botao botao-primario" name="acao" value="salvar" :disabled="!horasValidas">{% icone "save" %} Salvar {{ mes|mes_curto }}</button>
+      <span class="texto-3">{% if informe and not informe.previsao %}Atualizado em {{ informe.atualizado_em|date:"d/m/Y" }}.{% else %}O informe do mês é pago como o Salário do próprio mês.{% endif %}</span>
+    </div>
+  </form>
+
+  <div class="cartao">
+    <div class="cartao-cabecalho">
+      <h2>Informes × Salário recebido</h2>
+      <div class="descricao">O informe de cada mês é pago no próprio mês (o informe 05/2026 é o Salário de maio). Clique numa linha para abrir o informe.</div>
+    </div>
+    {% if linhas %}
+    <div class="tabela-rolagem alta">
+      <table class="tabela">
+        <thead><tr>
+          <th>Mês</th><th class="dir">Horas</th><th class="dir">Sobreaviso</th><th class="dir">Valor hora</th><th class="dir">Total bruto</th>
+          <th class="dir">Plano</th><th class="dir">Valor da NF</th><th class="dir">Salário lançado</th><th>Confere</th>
+        </tr></thead>
+        <tbody>
+          {% for l in linhas %}{% with i=l.informe %}
+          <tr class="clicavel{% if i.mes == mes %} atual{% endif %}" onclick="location.href='?mes={{ i.mes }}'">
+            <td class="negrito"><a href="?mes={{ i.mes }}">{{ i.mes|mes_curto }}</a>{% if i.previsao %}<span class="etiqueta roxo">Previsão</span>{% endif %}</td>
+            <td class="valor">{{ l.horas }}</td>
+            <td class="valor">{% if i.horas_sobreaviso %}{{ i.horas_sobreaviso|floatformat:"-2" }} h{% else %}<span class="texto-3">—</span>{% endif %}</td>
+            <td class="valor">{{ i.valor_hora|brl }}</td>
+            <td class="valor">{{ i.total_bruto|brl }}</td>
+            <td class="valor">{% if i.desconto %}{{ i.desconto|brl }}{% else %}<span class="texto-3">—</span>{% endif %}</td>
+            <td class="valor negrito">{{ l.valor_nf|brl }}{% if not l.nf_do_informe %}<span class="calculado" title="Sem o valor do informe: calculado">calc.</span>{% endif %}</td>
+            <td class="valor">{% if l.salario is None %}<span class="texto-3">—</span>{% else %}{{ l.salario|brl }}{% endif %}</td>
+            <td>{% if l.salario is None %}<span class="texto-3">—</span>
+              {% elif l.confere %}<span class="etiqueta verde" style="margin:0">{% icone "check_circle" %}Confere</span>
+              {% else %}<span class="etiqueta laranja" style="margin:0" title="Salário lançado − valor da NF">{% icone "warning" %}{{ l.diferenca_texto }}</span>{% endif %}</td>
+          </tr>
+          {% endwith %}{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="vazio">{% icone "inbox" %}Nenhum informe ainda. Preencha o do mês acima e salve.</div>
+    {% endif %}
+  </div>
+
+  <form method="post" class="cartao" novalidate>{% csrf_token %}
+    <input type="hidden" name="mes" value="{{ mes }}">
+    <input type="hidden" name="acao" value="prever">
+    <div class="cartao-cabecalho">
+      <h2>Previsão até dezembro</h2>
+      <div class="descricao">
+        {% if previsao.meses %}Para {{ previsao.meses|length }} mês(es) sem informe ({% for m in previsao.meses %}{{ m|mes_curto }}{% if not forloop.last %}, {% endif %}{% endfor %}):
+        grava um informe de previsão e o Salário previsto (não pago, dia 05). Um Salário já lançado de verdade nunca é alterado.
+        {% else %}Todos os meses até dezembro já têm informe.{% endif %}
+      </div>
+    </div>
+    {% if previsao.erro %}<div class="aviso erro" style="margin-bottom:14px">{% icone "error" %}<div>{{ previsao.erro }}</div></div>{% endif %}
+    <div class="form-grade">
+      <div class="campo">
+        <label for="horas_previsao">Horas por mês</label>
+        <input type="text" id="horas_previsao" name="horas_previsao" inputmode="numeric" autocomplete="off"
+               value="{{ previsao.horas }}" x-model="horas_previsao">
+      </div>
+      <div class="campo">
+        <label for="valor_hora_previsao">Valor hora (R$)</label>
+        <input type="text" id="valor_hora_previsao" name="valor_hora_previsao" inputmode="decimal" autocomplete="off"
+               value="{{ previsao.valor_hora }}" x-model="valor_hora_previsao">
+      </div>
+      <div class="campo">
+        <label for="plano_previsao">Plano de saúde (desconto)</label>
+        <input type="text" id="plano_previsao" name="plano_previsao" inputmode="decimal" autocomplete="off"
+               value="{{ previsao.plano }}" x-model="plano_previsao">
+      </div>
+      <div class="campo">
+        <span class="rotulo">Salário previsto por mês</span>
+        <div class="kpi-valor cor-entrada" style="font-size:20px; line-height:38px" x-text="brl(previsaoMensal)">—</div>
+      </div>
+    </div>
+    <div class="linha salvar-informe">
+      <button class="botao" {% if not previsao.meses %}disabled{% endif %}>{% icone "auto_graph" %} Gravar previsão até dezembro</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

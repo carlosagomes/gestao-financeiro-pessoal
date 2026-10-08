@@ -1,0 +1,44 @@
+{% extends "core/modal.html" %}{% load gfp %}
+{% block modal_titulo %}Categorias e bancos{% endblock %}
+{% block modal_subtitulo %}<div class="texto-3">As opções das colunas Categoria e Banco da tabela</div>{% endblock %}
+{% block modal_corpo %}
+<form class="cartao pilha" hx-post="{% url 'financeiro:cadastros' %}" hx-target="#modal-conteudo">
+  <input type="hidden" name="tipo" value="categoria">
+  <h3>Nova categoria</h3>
+  <div class="linha-fim">
+    <div class="campo cresce">
+      <label for="nova-categoria">Nome</label>
+      <input id="nova-categoria" name="nome" type="text" maxlength="60" value="{{ valores.categoria|default:'' }}" required>
+    </div>
+    <div class="campo">
+      <span class="rotulo">Usada em</span>
+      <div class="segmentado">
+        <label><input type="radio" name="movimentacao" value="Saída"{% if movimentacao != "Entrada" %} checked{% endif %}><span>Saída</span></label>
+        <label><input type="radio" name="movimentacao" value="Entrada"{% if movimentacao == "Entrada" %} checked{% endif %}><span>Entrada</span></label>
+      </div>
+    </div>
+    <button class="botao botao-primario">{% icone "add" %}Criar categoria</button>
+  </div>
+  {% if erros.categoria %}<span class="erro-campo">{{ erros.categoria }}</span>{% endif %}
+  <div class="opcoes-lista">
+    <span class="rotulo">Saída</span>
+    <div class="linha">{% for nome in saidas %}<span class="etiqueta vermelho">{{ nome }}</span>{% empty %}<span class="texto-3">nenhuma</span>{% endfor %}</div>
+    <span class="rotulo">Entrada</span>
+    <div class="linha">{% for nome in entradas %}<span class="etiqueta verde">{{ nome }}</span>{% empty %}<span class="texto-3">nenhuma</span>{% endfor %}</div>
+  </div>
+</form>
+
+<form class="cartao pilha" hx-post="{% url 'financeiro:cadastros' %}" hx-target="#modal-conteudo">
+  <input type="hidden" name="tipo" value="banco">
+  <h3>Novo banco</h3>
+  <div class="linha-fim">
+    <div class="campo cresce">
+      <label for="novo-banco">Nome</label>
+      <input id="novo-banco" name="nome" type="text" maxlength="60" value="{{ valores.banco|default:'' }}" required>
+    </div>
+    <button class="botao botao-primario">{% icone "add" %}Criar banco</button>
+  </div>
+  {% if erros.banco %}<span class="erro-campo">{{ erros.banco }}</span>{% endif %}
+  <div class="linha">{% for nome in bancos %}<span class="etiqueta azul">{{ nome }}</span>{% empty %}<span class="texto-3">nenhum</span>{% endfor %}</div>
+</form>
+{% endblock %}

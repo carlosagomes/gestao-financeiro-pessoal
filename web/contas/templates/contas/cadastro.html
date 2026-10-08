@@ -1,0 +1,15 @@
+{% extends "contas/_acesso.html" %}{% load gfp %}
+{% block titulo %}Criar conta{% endblock %}
+{% block caixa %}
+  <div><h2>Criar conta</h2><p class="texto-3">Leva menos de um minuto.</p></div>
+  {% if form.non_field_errors %}<div class="aviso erro">{% icone "error" %}<div>{{ form.non_field_errors|join:" " }}</div></div>{% endif %}
+  <form method="post" class="pilha" novalidate>{% csrf_token %}
+    {% include "core/_campo.html" with campo=form.nome %}
+    {% include "core/_campo.html" with campo=form.email %}
+    {% include "core/_campo.html" with campo=form.senha %}
+    {% include "core/_campo.html" with campo=form.confirmar %}
+    {% include "core/_campo.html" with campo=form.aceite %}
+    <button class="botao botao-primario" type="submit">{% icone "person_add" %} Criar conta</button>
+  </form>
+  <p class="texto-3">Já tem conta? <a href="{% url 'contas:entrar' %}">Entrar</a></p>
+{% endblock %}

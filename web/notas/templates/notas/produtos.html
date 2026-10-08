@@ -1,0 +1,59 @@
+{% extends "core/base.html" %}{% load static gfp %}
+{% block titulo %}Produtos{% endblock %}
+{% block cabecalho %}Produtos{% endblock %}
+{% block subtitulo %}<div class="subtitulo">Preço pago em cada produto, loja a loja</div>{% endblock %}
+{% block cabeca %}
+<link rel="stylesheet" href="{% static 'notas/notas.css' %}">
+<script src="{% static 'notas/notas.js' %}" defer></script>
+{% endblock %}
+{% block acoes %}<a class="botao botao-pequeno botao-fantasma" href="{% url 'notas:notas' %}">{% icone "shopping_cart" %}Notas Paraná</a>{% endblock %}
+
+{% block conteudo %}
+{% if vazio %}
+<div class="cartao vazio">{% icone "shopping_basket" %}Nenhum produto ainda: os itens vêm das notas do Nota Paraná.<br>
+  <a href="{% url 'integracoes:configuracoes' %}">Conecte o Nota Paraná em Configurações</a>.</div>
+{% else %}
+<p class="texto-2 mb-0">Tudo o que veio nas notas do Nota Paraná. O mesmo produto é reconhecido entre lojas pelo código de barras, e o preço é o que você pagou, já com desconto. Clique num produto para ver o histórico.</p>
+
+<form class="cartao np-filtros" id="produtos-filtros" role="search" method="get"
+      hx-get="{% url 'notas:produtos' %}" hx-target="#produtos-resultado" hx-swap="outerHTML" hx-push-url="true"
+      hx-trigger="submit, change[target.id!='busca'], input changed delay:400ms from:#busca" hx-sync="this:replace"
+      hx-indicator="#produtos-carregando">
+  <div class="campo np-filtro-busca">
+    <label for="busca">Buscar produto</label>
+    <input type="search" id="busca" name="busca" value="{{ filtro.busca }}" placeholder="Ex.: leite, café, patinho…" autocomplete="off" maxlength="80">
+  </div>
+  <div class="campo">
+    <label for="categoria">Categoria</label>
+    <select id="categoria" name="categoria">
+      <option value="">Todas</option>
+      {% for c in categorias %}<option value="{{ c }}"{% if c == filtro.categoria %} selected{% endif %}>{{ c }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="campo">
+    <label for="loja">Loja</label>
+    <select id="loja" name="loja">
+      <option value="">Todas</option>
+      {% for l in lojas %}<option value="{{ l }}"{% if l == filtro.loja %} selected{% endif %}>{{ l }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="campo">
+    <span class="rotulo" id="rotulo-periodo">Período</span>
+    <div class="np-periodo-campos" role="group" aria-labelledby="rotulo-periodo">
+      <select name="de" aria-label="Do mês">
+        {% for valor, rotulo in filtro.periodo.opcoes %}<option value="{{ valor }}"{% if valor == filtro.periodo.de %} selected{% endif %}>{{ rotulo }}</option>{% endfor %}
+      </select>
+      <span>a</span>
+      <select name="ate" aria-label="Até o mês">
+        {% for valor, rotulo in filtro.periodo.opcoes %}<option value="{{ valor }}"{% if valor == filtro.periodo.ate %} selected{% endif %}>{{ rotulo }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+  <label class="chave np-filtro-chave"><input type="checkbox" name="repetidos" value="1"{% if filtro.repetidos %} checked{% endif %}> Só os comprados mais de uma vez</label>
+  <span id="produtos-carregando" class="indicador texto-3" aria-hidden="true">{% icone "progress_activity" "girando" %}</span>
+  <noscript><button class="botao botao-primario">Filtrar</button></noscript>
+</form>
+
+{% include "notas/_produtos_resultado.html" %}
+{% endif %}
+{% endblock %}

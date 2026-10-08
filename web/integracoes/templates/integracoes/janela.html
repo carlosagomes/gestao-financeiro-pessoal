@@ -1,0 +1,63 @@
+{% extends "core/base.html" %}
+{% load static gfp %}
+{% block titulo %}Conectar {{ site.nome }}{% endblock %}
+{% block cabeca %}<link rel="stylesheet" href="{% static 'integracoes/janela.css' %}">{% endblock %}
+{% block cabecalho %}Conectar {{ site.nome }}{% endblock %}
+{% block subtitulo %}<div class="subtitulo">Faça o login no site da {{ site.nome }} por esta janela; o resto é automático</div>{% endblock %}
+
+{% block conteudo %}
+{% if not credencial %}
+<div class="aviso alerta">{% icone "key" %}<div>
+  <b>Falta cadastrar o CPF e a senha da {{ site.nome }}.</b><br>
+  Eles ficam cifrados e servem para preencher o login nesta janela. <a href="{{ url_config }}">Cadastrar em Configurações</a>
+</div></div>
+{% else %}
+<div class="janela" id="janela" data-ws="{{ ws_caminho }}" data-nome="{{ site.nome }}">
+  <ol class="janela-passos">
+    {% for passo in site.instrucoes %}<li>{{ passo }}</li>{% endfor %}
+  </ol>
+
+  <div class="cartao sem-padding" id="janela-cartao">
+    <div class="janela-barra">
+      <span class="janela-status" id="janela-status" data-estado="conectando" role="status" aria-live="polite">
+        <span class="ponto"></span><span class="rotulo">Conectando…</span>
+      </span>
+      <span class="janela-quem" title="CPF cadastrado em Configurações">{% icone "badge" %} {{ credencial.login_mascarado }}</span>
+      <span class="janela-dica" id="janela-dica">Clique na tela para digitar</span>
+      <div class="acoes">
+        <button type="button" class="botao botao-pequeno janela-so-toque" id="janela-teclado-botao">{% icone "keyboard" %} Teclado</button>
+        <button type="button" class="botao botao-pequeno" id="janela-recarregar" title="Recarregar a página do site" disabled>{% icone "refresh" %} Recarregar</button>
+        <button type="button" class="botao botao-pequeno botao-perigo" id="janela-fechar" disabled>{% icone "close" %} Fechar</button>
+      </div>
+    </div>
+    <div class="janela-tela" id="janela-tela">
+      <canvas id="janela-canvas" width="1100" height="760" aria-label="Tela do site da {{ site.nome }}"></canvas>
+      <input type="text" id="janela-teclado" class="janela-teclado" autocomplete="off" autocapitalize="off"
+             autocorrect="off" spellcheck="false" enterkeyhint="go" aria-label="Digitar no site da {{ site.nome }}">
+      <div class="janela-cobertura" id="janela-cobertura">
+        {% icone "progress_activity" "girando" %}<span id="janela-cobertura-texto">Abrindo o navegador…</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="cartao janela-fim oculto" id="janela-fim" data-tipo="sucesso">
+    <span class="janela-fim-icone" id="janela-fim-icone">{% icone "check_circle" %}</span>
+    <div class="pilha">
+      <div>
+        <h2 id="janela-fim-titulo">Conectado!</h2>
+        <p class="texto-2" id="janela-fim-texto"></p>
+      </div>
+      <div class="linha">
+        <a class="botao botao-primario oculto" id="janela-ir-dados" href="{{ url_dados }}">{% icone "arrow_forward" %} Ir para {{ site.rotulo_dados }}</a>
+        <button type="button" class="botao botao-primario oculto" id="janela-reabrir">{% icone "refresh" %} Abrir de novo</button>
+        <a class="botao" href="{{ url_config }}">{% icone "settings" %} Configurações</a>
+      </div>
+    </div>
+  </div>
+
+  <p class="janela-seguranca">{% icone "lock" %} É o site oficial da {{ site.nome }}, aberto no nosso servidor. Guardamos só os cookies da sessão, cifrados; o que você digita aqui não fica salvo.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}{% if credencial %}<script src="{% static 'integracoes/janela.js' %}" defer></script>{% endif %}{% endblock %}

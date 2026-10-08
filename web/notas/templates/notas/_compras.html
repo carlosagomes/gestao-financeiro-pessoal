@@ -1,0 +1,21 @@
+{% load gfp %}{% for mes in meses_lista %}
+<div class="lt-mes">{{ mes.rotulo }}<span>{{ mes.n }} compra{{ mes.n|pluralize }} · {{ mes.total|brl }}</span></div>
+{% for c in mes.compras %}
+<button type="button" class="lt-item np-lt-item" data-url="{% url 'notas:nota' c.nota_id %}?voltar={{ voltar_nota|urlencode:'' }}"
+        onclick="GFP.abrirModal(this.dataset.url, {tamanho: 'medio'})">
+  <span class="lt-dia">{{ c.dia }}<small>{{ c.semana }} {{ c.hora }}</small></span>
+  <span class="np-lt-texto">
+    <span class="lt-titulo">{{ c.titulo }}</span>
+    {% if c.detalhe %}<span class="lt-sub">{{ c.detalhe }}</span>{% endif %}
+    {% if c.produtos %}<span class="lt-sub">{{ c.produtos }}</span>{% endif %}
+  </span>
+  <span class="lt-valor">{{ c.valor|brl }}</span>
+</button>
+{% endfor %}{% endfor %}
+{% if url_mais %}
+<div class="np-mais">
+  <button type="button" class="botao botao-pequeno" hx-get="{{ url_mais }}" hx-target="closest .np-mais" hx-swap="outerHTML">
+    {% icone "expand_more" %}Mostrar compras anteriores
+  </button>
+</div>
+{% endif %}

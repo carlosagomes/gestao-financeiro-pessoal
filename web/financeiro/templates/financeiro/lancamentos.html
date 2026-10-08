@@ -1,0 +1,75 @@
+{% extends "core/base.html" %}{% load gfp static l10n %}
+{% block titulo %}Lançamentos{% endblock %}
+{% block cabeca %}
+<link rel="stylesheet" href="{% static 'financeiro/financeiro.css' %}">
+{% endblock %}
+{% block cabecalho %}Lançamentos{% endblock %}
+{% block subtitulo %}<div class="subtitulo">A planilha do mês: edite na tabela e salva sozinho</div>{% endblock %}
+{% block acoes %}
+<button class="botao botao-fantasma" type="button" title="Nova categoria ou novo banco"
+        onclick="GFP.abrirModal('{% url 'financeiro:cadastros' %}', {tamanho: 'medio'})">{% icone "sell" %}<span class="some-celular">Categorias e bancos</span></button>
+<button class="botao botao-fantasma" type="button" title="Histórico de alterações"
+        onclick="GFP.abrirModal('{% url 'financeiro:historico' %}')">{% icone "history" %}<span class="some-celular">Histórico</span></button>
+{% endblock %}
+
+{% block conteudo %}
+<form id="filtros" class="cartao filtros" method="get" role="search">
+  <div class="campo campo-ano">
+    <label for="f-ano">Ano</label>
+    <select id="f-ano" name="ano">{% for a in anos %}<option value="{{ a|unlocalize }}"{% if a == f.ano %} selected{% endif %}>{{ a|unlocalize }}</option>{% endfor %}</select>
+  </div>
+  <div class="campo campo-mes">
+    <label for="f-mes">Mês</label>
+    <select id="f-mes" name="mes">
+      <option value="0"{% if not f.mes %} selected{% endif %}>Todos os meses</option>
+      {% for n, nome in meses %}<option value="{{ n }}"{% if n == f.mes %} selected{% endif %}>{{ nome }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="campo">
+    <span class="rotulo">Movimentação</span>
+    <div class="segmentado">
+      <label><input type="radio" name="mov" value=""{% if not f.movimentacao %} checked{% endif %}><span>Todas</span></label>
+      <label><input type="radio" name="mov" value="Entrada"{% if f.movimentacao == "Entrada" %} checked{% endif %}><span>Entrada</span></label>
+      <label><input type="radio" name="mov" value="Saída"{% if f.movimentacao == "Saída" %} checked{% endif %}><span>Saída</span></label>
+    </div>
+  </div>
+  <div class="campo">
+    <span class="rotulo">Situação</span>
+    <div class="segmentado">
+      <label><input type="radio" name="situacao" value=""{% if not f.situacao %} checked{% endif %}><span>Todas</span></label>
+      <label><input type="radio" name="situacao" value="pagas"{% if f.situacao == "pagas" %} checked{% endif %}><span>Pagas</span></label>
+      <label><input type="radio" name="situacao" value="a-pagar"{% if f.situacao == "a-pagar" %} checked{% endif %}><span>A pagar</span></label>
+    </div>
+  </div>
+  <div class="campo campo-busca">
+    <label for="f-busca">Buscar</label>
+    <input id="f-busca" type="search" name="busca" value="{{ f.busca }}" placeholder="Descrição, categoria ou banco" autocomplete="off">
+  </div>
+  <noscript><button class="botao">Filtrar</button></noscript>
+</form>
+
+<div class="grade g-4 kpis-compactos" id="kpis">
+  <div class="kpi-alvo" data-kpi="entradas">{% include "core/_kpi.html" with rotulo="Entradas" valor=t.entradas|brl cor="verde" icone="south_west" detalhe=detalhes.entradas %}</div>
+  <div class="kpi-alvo" data-kpi="saidas">{% include "core/_kpi.html" with rotulo="Saídas pagas" valor=t.saidas|brl cor="vermelho" icone="north_east" detalhe=detalhes.saidas %}</div>
+  <div class="kpi-alvo" data-kpi="a_pagar">{% include "core/_kpi.html" with rotulo="A pagar" valor=t.a_pagar|brl cor="laranja" icone="schedule" detalhe=detalhes.a_pagar ajuda="Saídas ainda não marcadas como pagas. Não entram na Saída nem no Saldo." %}</div>
+  <div class="kpi-alvo" data-kpi="saldo">{% include "core/_kpi.html" with rotulo="Saldo" valor=t.saldo|brl cor="azul" icone="account_balance_wallet" detalhe="entradas − saídas pagas" %}</div>
+</div>
+
+<section class="cartao">
+  <div class="cartao-cabecalho">
+    <h2 id="titulo-tabela">{{ titulo_tabela }}</h2>
+    <span class="etiqueta cinza" id="contagem">{{ t.n }} lançamento{{ t.n|pluralize }}</span>
+    <div class="acoes acoes-tabela">
+      <button class="botao botao-primario" type="button" id="b-adicionar">{% icone "add" %}<span class="rotulo-botao">Adicionar lançamento</span></button>
+      <button class="botao oculto" type="button" id="b-marcar">{% icone "done_all" %}<span class="rotulo-botao">Marcar como pagas</span></button>
+      <button class="botao" type="button" id="b-copiar" disabled>{% icone "content_copy" %}<span class="rotulo-botao">Copiar mês anterior</span></button>
+      <button class="botao botao-perigo" type="button" id="b-excluir" disabled>{% icone "delete" %}<span class="rotulo-botao">Excluir selecionados</span></button>
+    </div>
+  </div>
+  <div id="grade-lancamentos" data-api="{% url 'financeiro:api' %}"></div>
+  <div class="legenda-dica">{% icone "info" %}Clique numa célula para editar: salva sozinho. No Pago, um clique marca ou desmarca. Marque linhas pela caixa à esquerda para excluir ou pagar várias.</div>
+</section>
+{{ dados|json_script:"dados-lancamentos" }}
+{% endblock %}
+
+{% block scripts %}<script src="{% static 'financeiro/lancamentos.js' %}" defer></script>{% endblock %}

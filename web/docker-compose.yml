@@ -1,0 +1,58 @@
+# Gestão Financeira Pessoal: banco (PostgreSQL), site (Django/ASGI) e trabalhador (sincronizações agendadas).
+#   docker compose up -d --build      -> http://localhost:8000
+name: gestao-financeira
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: gfp
+      POSTGRES_USER: gfp
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina no .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5433:5432"   # só para rodar o Django fora do Docker durante o desenvolvimento
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gfp -d gfp"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+
+  web:
+    build: .
+    image: gestao-financeira-web
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://gfp:${POSTGRES_PASSWORD}@db:5432/gfp
+      APP_DADOS: /dados
+      DJANGO_DEBUG: "0"
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             daphne -b 0.0.0.0 -p 8000 --proxy-headers config.asgi:application"
+    volumes:
+      - ./dados:/dados          # PDFs, HTML das notas, batimento do trabalhador
+    ports:
+      - "127.0.0.1:8000:8000"
+    shm_size: 1gb                # Chromium da janela remota (Copel/Sanepar)
+    depends_on:
+      db: {condition: service_healthy}
+    restart: unless-stopped
+
+  trabalhador:
+    image: gestao-financeira-web
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://gfp:${POSTGRES_PASSWORD}@db:5432/gfp
+      APP_DADOS: /dados
+      DJANGO_DEBUG: "0"
+    command: python manage.py trabalhador
+    volumes:
+      - ./dados:/dados          # PDFs, HTML das notas, batimento do trabalhador
+    shm_size: 1gb
+    depends_on:
+      db: {condition: service_healthy}
+      web: {condition: service_started}
+    restart: unless-stopped
+
+volumes:
+  pgdata:

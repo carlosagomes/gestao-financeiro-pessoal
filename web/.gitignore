@@ -1,0 +1,7 @@
+.env
+.venv/
+dados/
+staticfiles/
+__pycache__/
+*.pyc
+testes_dados/

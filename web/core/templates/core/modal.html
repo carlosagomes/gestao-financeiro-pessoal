@@ -1,0 +1,9 @@
+{% load gfp %}{# Base dos conteúdos abertos no modal: {% extends "core/modal.html" %} #}
+<div class="modal-cabecalho">
+  <div>
+    <h2>{% block modal_titulo %}{% endblock %}</h2>
+    {% block modal_subtitulo %}{% endblock %}
+  </div>
+  <button class="botao botao-icone botao-fantasma fechar" onclick="GFP.fecharModal()" aria-label="Fechar">{% icone "close" %}</button>
+</div>
+<div class="modal-corpo">{% block modal_corpo %}{% endblock %}</div>

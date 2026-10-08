@@ -1,0 +1,61 @@
+{% extends "core/base.html" %}{% load gfp static %}
+{% block titulo %}Configurações{% endblock %}
+{% block cabeca %}<link rel="stylesheet" href="{% static 'integracoes/configuracoes.css' %}">{% endblock %}
+{% block cabecalho %}Configurações{% endblock %}
+{% block subtitulo %}<div class="subtitulo">Conexões com o Nota Paraná, a Sanepar e a Copel</div>{% endblock %}
+{% block acoes %}<a class="botao" href="{% url 'contas:perfil' %}">{% icone "person" %} Perfil</a>{% endblock %}
+{% block conteudo %}
+<div class="aviso info">{% icone "lock" %}<div>As senhas ficam cifradas e nunca aparecem de novo nesta tela. Captchas e códigos de verificação são sempre resolvidos por você, na janela de conexão.</div></div>
+{% if parado %}
+<div class="aviso alerta">{% icone "pause_circle" %}<div>O serviço de sincronização não está rodando agora. O que está na fila começa assim que ele voltar.</div></div>
+{% endif %}
+
+<div class="grade g-3">
+  {% for s in servicos %}
+  <section class="cartao servico-cartao" aria-label="{{ s.nome }}">
+    {% include "integracoes/_servico.html" %}
+    <form method="post" class="servico-form" autocomplete="off">{% csrf_token %}
+      <div class="separador"></div>
+      <input type="hidden" name="servico" value="{{ s.servico }}">
+      <h3>{% if s.credencial %}Trocar CPF ou senha{% else %}Cadastrar CPF e senha{% endif %}</h3>
+      {% if s.form.non_field_errors %}<div class="erro-campo">{{ s.form.non_field_errors|join:" " }}</div>{% endif %}
+      <div class="campo">
+        <label for="login-{{ s.servico }}">{{ s.rotulo_login }}</label>
+        <input type="text" id="login-{{ s.servico }}" name="login" value="" inputmode="numeric" autocomplete="off"
+               maxlength="30" placeholder="{% if s.credencial %}{{ s.login_mascarado }}{% else %}Só números{% endif %}">
+        {% if s.credencial %}<span class="ajuda">Deixe em branco para manter o atual.</span>{% endif %}
+        {% for erro in s.form.login.errors %}<span class="erro">{{ erro }}</span>{% endfor %}
+      </div>
+      <div class="campo">
+        <label for="senha-{{ s.servico }}">Senha do site</label>
+        <input type="password" id="senha-{{ s.servico }}" name="senha" value="" autocomplete="new-password" maxlength="200">
+        <span class="ajuda">{% if s.credencial %}Deixe em branco para manter a senha atual.{% else %}A mesma que você usa no site{% if s.servico != "notaparana" %}; ela é preenchida na janela de conexão{% endif %}.{% endif %}</span>
+        {% for erro in s.form.senha.errors %}<span class="erro">{{ erro }}</span>{% endfor %}
+      </div>
+      <div class="linha">
+        <button class="botao botao-pequeno botao-primario" name="acao" value="salvar">{% icone "save" %} Salvar</button>
+        {% if s.credencial %}
+        <button class="botao botao-pequeno botao-perigo empurra" name="acao" value="remover" formnovalidate
+                onclick="return confirm('Remover o CPF, a senha e a sessão salva do {{ s.nome }}?')">{% icone "delete" %} Remover</button>
+        {% endif %}
+      </div>
+    </form>
+  </section>
+  {% endfor %}
+</div>
+
+<div class="cartao">
+  <div class="cartao-cabecalho">
+    <h2>Atualização automática</h2>
+    <div class="acoes"><a class="botao botao-pequeno" href="{% url 'contas:perfil' %}">{% icone "edit" %} Alterar no Perfil</a></div>
+  </div>
+  {% if user.atualizacao_automatica %}
+  <p>{% icone "schedule" %} <b>Ligada</b>: todo dia, a partir das <b>{{ user.hora_atualizacao|time:"H:i" }}</b> (horário de Brasília), o sistema busca as notas do Nota Paraná e, se a sessão estiver valendo, as contas da Sanepar.</p>
+  {% else %}
+  <p>{% icone "schedule" %} <b>Desligada</b>: as notas e contas só são buscadas quando você pedir.</p>
+  {% endif %}
+  <p class="texto-3 mb-0">A Copel fica de fora: o login pede o reCAPTCHA toda vez. Se uma tentativa automática falhar, o sistema tenta de novo até 3 vezes no dia, com 1 hora de intervalo; senha recusada para tudo até você salvar a senha certa.</p>
+</div>
+
+{% include "integracoes/_historico.html" %}
+{% endblock %}

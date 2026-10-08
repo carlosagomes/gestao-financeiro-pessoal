@@ -1,0 +1,20 @@
+/* Configurações: cartões dos serviços (Nota Paraná, Sanepar, Copel), histórico e registro das tarefas. */
+.servico-cartao { display: flex; flex-direction: column; gap: 14px; }
+.servico-estado { display: flex; flex-direction: column; gap: 12px; }
+.servico-icone {
+  width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex: none;
+  background: var(--primaria-suave); color: var(--primaria);
+}
+.servico-dados { margin: 0; display: grid; gap: 6px; font-size: 13px; }
+.servico-dados > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.servico-dados dt { color: var(--texto-3); }
+.servico-dados dd { margin: 0; text-align: right; font-weight: 550; }
+.servico-form { display: flex; flex-direction: column; gap: 12px; margin-top: auto; }
+.servico-form h3 { font-size: 13px; color: var(--texto-2); }
+.servico-cartao .aviso small { color: var(--texto-2); }
+.tabela td.mensagem { max-width: 360px; overflow: hidden; text-overflow: ellipsis; }
+pre.registro {
+  margin: 0; max-height: 440px; overflow: auto; padding: 12px 14px; border-radius: var(--raio-p);
+  background: var(--superficie-2); border: 1px solid var(--borda); color: var(--texto-2);
+  font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-word;
+}

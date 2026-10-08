@@ -1,0 +1,6 @@
+{% load gfp %}{% if sync.erro %}
+<div class="aviso alerta">{% icone "sync_problem" %}
+  <div>A última busca automática da {{ nome }} falhou ({{ sync.erro.criada_em|date:"d/m" }} às {{ sync.erro.criada_em|date:"H:i" }}).
+    Se o acesso expirou, entre de novo em <a href="{% url 'integracoes:configuracoes' %}">Configurações</a> ou envie o PDF da conta.</div>
+</div>
+{% endif %}

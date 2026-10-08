@@ -1,0 +1,12 @@
+/* Água e Luz: só o que os componentes comuns não cobrem. */
+.conferencia { gap: 6px; flex-wrap: nowrap; }
+.conferencia small { font-size: 11px; }
+.bandeiras { display: inline-flex; gap: 4px; flex-wrap: nowrap; }
+.proxima-conta .linha { margin-top: 8px; }
+@media (max-width: 640px) {
+  .botao-enviar.no-topo { width: 36px; padding: 0; }
+  .botao-enviar.no-topo .rotulo-acao { display: none; }
+}
+@media (max-width: 640px) {
+  .topo-acoes { flex-wrap: nowrap; flex: none; gap: 4px; }  /* os botões do topo numa linha só */
+}

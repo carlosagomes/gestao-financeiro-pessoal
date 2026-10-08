@@ -1,0 +1,35 @@
+{% load gfp %}{# Também é a resposta do botão "Ajustar" (HTMX troca o cartão inteiro). #}
+<div class="cartao" id="faturas-luz">
+  <div class="cartao-cabecalho">
+    <h2>Faturas e lançamentos de Luz</h2>
+    <div class="acoes">
+      <button class="botao botao-pequeno" hx-post="{% url 'consumo:luz_ajustar' %}" hx-target="#faturas-luz" hx-swap="outerHTML">
+        {% icone "sync_alt" %} Ajustar lançamentos de Luz pelas faturas</button>
+    </div>
+    <div class="descricao">A conta de luz entra no próprio mês de referência (a ref. 05/2026, que vence 15/06, fica em maio). Cada fatura nova ajusta o lançamento de Luz sozinha; o Pago que você marcou nunca é desfeito.</div>
+  </div>
+  <div class="tabela-rolagem alta">
+    <table class="tabela">
+      <thead><tr>
+        <th>Referência</th><th>Vencimento</th><th>Pago em</th><th class="dir">Consumo</th><th>Bandeira</th>
+        <th class="dir">Impostos</th><th class="dir">Total</th><th>Situação</th><th>Lançamento</th><th><span class="oculto">PDF</span></th>
+      </tr></thead>
+      <tbody>
+        {% for l in linhas %}{% with f=l.fatura %}
+        <tr>
+          <td class="negrito">{{ f.referencia|slice:"5:" }}/{{ f.referencia|slice:":4" }}</td>
+          <td>{{ f.vencimento|date:"d/m/Y"|default:"—" }}</td>
+          <td>{{ f.data_pagamento|date:"d/m/Y"|default:"—" }}</td>
+          <td class="valor">{% if f.consumo_kwh is not None %}{{ f.consumo_kwh|floatformat:0 }} kWh{% else %}—{% endif %}</td>
+          <td><span class="bandeiras">{% for b in l.bandeiras %}<span class="etiqueta {{ b.cor }}" title="{{ b.periodo }}">{{ b.nome }}</span>{% empty %}<span class="texto-3">—</span>{% endfor %}</span></td>
+          <td class="valor">{{ l.impostos|brl }}</td>
+          <td class="valor negrito">{{ f.valor_total|brl }}</td>
+          <td>{% if f.situacao == "Quitada" %}<span class="etiqueta verde">{% icone "check" %}Quitada</span>{% elif f.situacao %}<span class="etiqueta laranja">{% icone "schedule" %}{{ f.situacao }}</span>{% else %}<span class="texto-3">—</span>{% endif %}</td>
+          <td>{% include "consumo/_conferencia.html" with c=l.lancamento categoria="Luz" %}</td>
+          <td>{% if f.pdf %}<a class="botao botao-icone botao-fantasma botao-pequeno" href="{% url 'consumo:luz_pdf' f.pk %}" title="Baixar o PDF" aria-label="Baixar o PDF da fatura {{ f.referencia }}">{% icone "download" %}</a>{% endif %}</td>
+        </tr>
+        {% endwith %}{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,43 @@
+{% extends "core/modal.html" %}{% load gfp %}
+{% block modal_titulo %}{{ titulo }}{% endblock %}
+{% block modal_subtitulo %}<div class="linha">{% include "financeiro/_status.html" with status=status pendentes=t.pendentes %}<span class="texto-3">{{ t.n }} lançamento{{ t.n|pluralize }}</span></div>{% endblock %}
+{% block modal_corpo %}
+{% if not t.n %}
+<div class="cartao vazio">{% icone "inbox" %}Nenhum lançamento neste mês</div>
+{% else %}
+<div class="grade g-4 kpis-compactos">
+  {% include "core/_kpi.html" with rotulo="Entradas" valor=t.entradas|brl cor="verde" icone="south_west" %}
+  {% include "core/_kpi.html" with rotulo="Saídas pagas" valor=t.saidas|brl cor="vermelho" icone="north_east" %}
+  {% include "core/_kpi.html" with rotulo="A pagar" valor=t.a_pagar|brl cor="laranja" icone="schedule" %}
+  {% include "core/_kpi.html" with rotulo="Saldo" valor=t.saldo|brl cor="azul" icone="account_balance_wallet" %}
+</div>
+{% for titulo, itens, total in grupos %}{% if itens %}
+<section class="cartao">
+  <div class="cartao-cabecalho">
+    <h2>{{ titulo }}</h2><span class="etiqueta cinza">{{ itens|length }}</span>
+    <div class="acoes negrito num">{{ total|brl }}</div>
+  </div>
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <thead><tr><th>Dia</th><th>Categoria</th><th>Descrição</th><th>Banco</th><th class="dir">Valor</th><th>Situação</th></tr></thead>
+      <tbody>
+        {% for l in itens %}
+        <tr>
+          <td>{{ l.data|date:"d/m" }}</td>
+          <td>{{ l.categoria }}</td>
+          <td class="quebra">{{ l.descricao|default:"—" }}</td>
+          <td>{{ l.banco|default:"—" }}</td>
+          <td class="valor {% if l.movimentacao == 'Entrada' %}cor-entrada{% elif l.pago %}cor-saida{% else %}cor-pagar{% endif %}">{{ l.valor|brl }}</td>
+          <td>{% if l.pago %}<span class="etiqueta verde">{% icone "check" %}{% if l.movimentacao == 'Entrada' %}Recebido{% else %}Pago{% endif %}</span>
+              {% elif l.movimentacao == 'Entrada' %}<span class="etiqueta cinza">A receber</span>
+              {% else %}<span class="etiqueta laranja">A pagar</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}{% endfor %}
+{% endif %}
+<div class="linha"><a class="botao" href="{{ url_lancamentos }}">{% icone "edit_note" %}Editar em Lançamentos</a></div>
+{% endblock %}

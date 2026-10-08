@@ -1,0 +1,77 @@
+{% extends "core/base.html" %}{% load gfp static l10n %}
+{% block titulo %}Resumo{% endblock %}
+{% block cabeca %}<link rel="stylesheet" href="{% static 'financeiro/financeiro.css' %}">{% endblock %}
+{% block cabecalho %}Resumo{% endblock %}
+{% block subtitulo %}<div class="subtitulo">Entradas, saídas e saldo de {{ ano|unlocalize }}, mês a mês</div>{% endblock %}
+{% block acoes %}
+<form method="get" class="seletor-ano">
+  <select name="ano" aria-label="Ano" onchange="this.form.submit()">
+    {% for a in anos %}<option value="{{ a|unlocalize }}"{% if a == ano %} selected{% endif %}>{{ a|unlocalize }}</option>{% endfor %}
+  </select>
+  <noscript><button class="botao">Ver</button></noscript>
+</form>
+{% endblock %}
+
+{% block conteudo %}
+{% if not r.tem_dados %}
+<div class="cartao vazio">{% icone "inbox" %}Nenhum lançamento em {{ ano|unlocalize }}.<br>
+  <a href="{% url 'financeiro:lancamentos' %}?ano={{ ano|unlocalize }}">Comece pelos lançamentos do mês</a></div>
+{% else %}
+
+<div class="grade g-4">
+  {% for k in kpis %}{% include "core/_kpi.html" with rotulo=k.rotulo valor=k.valor cor=k.cor icone=k.icone detalhe=k.detalhe mini=k.mini ajuda=k.ajuda %}{% endfor %}
+</div>
+
+<div class="grade g-3-2">
+  <section class="cartao">
+    <div class="cartao-cabecalho">
+      <h2>Entradas × saídas</h2>
+      <div class="descricao">A saída conta só o que já foi pago; o que falta pagar fica em laranja. Clique num mês para ver os lançamentos.</div>
+    </div>
+    {% grafico fig_mensal altura clique=url_mes %}
+  </section>
+  <section class="cartao">
+    <div class="cartao-cabecalho">
+      <h2>Saídas por categoria</h2>
+      <div class="descricao">Saídas pagas em {{ ano|unlocalize }}. Clique numa barra para ver os lançamentos.</div>
+    </div>
+    {% if fig_categorias %}{% grafico fig_categorias altura clique=url_categoria %}
+    {% else %}<div class="vazio">{% icone "bar_chart" %}Nenhuma saída paga ainda</div>{% endif %}
+  </section>
+</div>
+
+<section class="cartao">
+  <div class="cartao-cabecalho">
+    <h2>Por mês</h2>
+    <div class="descricao">Como a aba Início da planilha. Clique num mês para ver os lançamentos dele.</div>
+  </div>
+  <div class="tabela-rolagem">
+    <table class="tabela tabela-mes">
+      <thead>
+        <tr><th>Mês</th><th class="dir">Entrada</th><th class="dir">Saída</th><th class="dir">Saldo</th><th class="dir">A pagar</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for m in r.meses %}
+        <tr{% if m.n %} class="clicavel" tabindex="0" data-url="{% url 'financeiro:resumo_mes' %}?ano={{ ano|unlocalize }}&amp;alvo={{ m.mes }}" onclick="GFP.abrirModal(this.dataset.url)" onkeydown="if (event.key === 'Enter') this.click()"{% endif %}>
+          <td class="mes{% if m.status == 'previsao' %} previsao{% endif %}">{{ m.nome }}</td>
+          <td class="valor c-entrada{% if not m.entradas %} zero{% endif %}">{{ m.entradas|brl }}</td>
+          <td class="valor c-saida{% if not m.saidas %} zero{% endif %}">{{ m.saidas|brl }}</td>
+          <td class="valor c-saldo{% if not m.saldo %} zero{% elif m.saldo < 0 %} negativo{% endif %}">{{ m.saldo|brl }}</td>
+          <td class="valor c-pagar{% if not m.a_pagar %} zero{% endif %}">{% if m.a_pagar %}{{ m.a_pagar|brl }}{% else %}—{% endif %}</td>
+          <td class="status">{% include "financeiro/_status.html" with status=m.status pendentes=m.pendentes %}</td>
+        </tr>
+        {% endfor %}
+        <tr class="total">
+          <td>TOTAL ANUAL</td>
+          <td class="valor">{{ r.total.entradas|brl }}</td>
+          <td class="valor">{{ r.total.saidas|brl }}</td>
+          <td class="valor">{{ r.total.saldo|brl }}</td>
+          <td class="valor">{% if r.total.a_pagar %}{{ r.total.a_pagar|brl }}{% else %}—{% endif %}</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "contas/_acesso.html" %}{% load gfp %}
+{% block titulo %}Entrar{% endblock %}
+{% block caixa %}
+  <div><h2>Entrar</h2><p class="texto-3">Use o e-mail e a senha da sua conta.</p></div>
+  {% for m in messages %}<div class="aviso info">{% icone "info" %}<div>{{ m }}</div></div>{% endfor %}
+  {% if form.non_field_errors %}<div class="aviso erro">{% icone "error" %}<div>{{ form.non_field_errors|join:" " }}</div></div>{% endif %}
+  <form method="post" class="pilha" novalidate>{% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    {% include "core/_campo.html" with campo=form.email %}
+    {% include "core/_campo.html" with campo=form.senha %}
+    <button class="botao botao-primario" type="submit">{% icone "login" %} Entrar</button>
+  </form>
+  {% if CADASTRO_ABERTO %}<p class="texto-3">Ainda não tem conta? <a href="{% url 'contas:cadastro' %}">Criar conta grátis</a></p>{% endif %}
+{% endblock %}

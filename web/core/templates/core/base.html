@@ -1,0 +1,95 @@
+{% load static gfp %}<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>{% block titulo %}{% endblock %} · {{ NOME_SISTEMA }}</title>
+  <link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block" rel="stylesheet">
+  <script>try { const t = localStorage.getItem("tema"); if (t) document.documentElement.dataset.tema = t; } catch (e) {}</script>
+  <link rel="stylesheet" href="{% static 'vendor/tabulator.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+  <script src="{% static 'vendor/plotly.min.js' %}" defer></script>
+  <script src="{% static 'vendor/tabulator.min.js' %}" defer></script>
+  <script src="{% static 'js/app.js' %}" defer></script>
+  {% block cabeca %}{% endblock %}
+  <script src="{% static 'vendor/alpine.min.js' %}" defer></script>
+</head>
+<body>
+<div class="app" x-data="{ menu: false }" :class="{ 'menu-aberto': menu }">
+  <aside class="lateral" aria-label="Menu principal">
+    <a class="marca" href="{% url 'financeiro:resumo' %}">
+      <span class="marca-logo">{% icone "trending_up" %}</span>
+      <span class="marca-nome">Gestão Financeira<small>Pessoal</small></span>
+    </a>
+    {% with nome=request.resolver_match.view_name %}
+    <nav class="menu">
+      <div class="menu-grupo">Visão geral</div>
+      <a href="{% url 'financeiro:resumo' %}" class="{% if nome == 'financeiro:resumo' %}ativo{% endif %}">{% icone "dashboard" %} Resumo</a>
+      <a href="{% url 'financeiro:lancamentos' %}" class="{% if nome == 'financeiro:lancamentos' %}ativo{% endif %}">{% icone "receipt_long" %} Lançamentos</a>
+
+      <div class="menu-grupo">Consumo</div>
+      <a href="{% url 'notas:notas' %}" class="{% if nome == 'notas:notas' %}ativo{% endif %}">{% icone "shopping_cart" %} Notas Paraná</a>
+      <a href="{% url 'notas:produtos' %}" class="{% if nome == 'notas:produtos' %}ativo{% endif %}">{% icone "shopping_basket" %} Produtos</a>
+
+      <div class="menu-grupo">Contas da casa</div>
+      <a href="{% url 'consumo:agua' %}" class="{% if nome == 'consumo:agua' %}ativo{% endif %}">{% icone "water_drop" %} Água · Sanepar</a>
+      <a href="{% url 'consumo:luz' %}" class="{% if nome == 'consumo:luz' %}ativo{% endif %}">{% icone "bolt" %} Luz · Copel</a>
+
+      {% if user.pj_habilitado %}
+      <div class="menu-grupo">PJ</div>
+      <a href="{% url 'pj:horas' %}" class="{% if nome|slice:':3' == 'pj:' %}ativo{% endif %}">{% icone "work" %} Horas e informes</a>
+      {% endif %}
+
+      <div class="menu-grupo">Conta</div>
+      <a href="{% url 'integracoes:configuracoes' %}" class="{% if nome|slice:':12' == 'integracoes:' %}ativo{% endif %}">{% icone "settings" %} Configurações</a>
+      {% if user.is_staff %}<a href="{% url 'admin:index' %}">{% icone "admin_panel_settings" %} Administração</a>{% endif %}
+    </nav>
+    {% endwith %}
+    <div class="lateral-rodape">
+      <div class="status-sync" hx-get="{% url 'integracoes:status' %}" hx-trigger="load, every 15s, sincronizou from:body" hx-swap="innerHTML"></div>
+      <a class="usuario-menu" href="{% url 'contas:perfil' %}">
+        <span class="avatar">{{ user.iniciais }}</span>
+        <span><span class="nome">{{ user.primeiro_nome }}</span><br><small>{{ user.email }}</small></span>
+      </a>
+    </div>
+  </aside>
+  <div class="cortina" x-show="menu" x-cloak @click="menu = false"></div>
+
+  <div class="principal">
+    <header class="topo">
+      <button class="botao botao-icone botao-fantasma botao-menu" @click="menu = !menu" aria-label="Abrir menu">{% icone "menu" %}</button>
+      <div>
+        <h1>{% block cabecalho %}{% endblock %}</h1>
+        {% block subtitulo %}{% endblock %}
+      </div>
+      <div class="topo-acoes">
+        {% block acoes %}{% endblock %}
+        <button class="botao botao-icone botao-fantasma" onclick="GFP.alternarTema()" title="Tema claro/escuro" aria-label="Alternar tema">{% icone "contrast" %}</button>
+        <form method="post" action="{% url 'contas:sair' %}">{% csrf_token %}
+          <button class="botao botao-icone botao-fantasma" title="Sair" aria-label="Sair">{% icone "logout" %}</button>
+        </form>
+      </div>
+    </header>
+    <main class="conteudo">
+      {% for m in messages %}
+        <div class="aviso {% if m.tags == 'error' %}erro{% elif m.tags == 'warning' %}alerta{% elif m.tags == 'success' %}sucesso{% else %}info{% endif %}">
+          {% if m.tags == 'error' %}{% icone "error" %}{% elif m.tags == 'success' %}{% icone "check_circle" %}{% elif m.tags == 'warning' %}{% icone "warning" %}{% else %}{% icone "info" %}{% endif %}<div>{{ m }}</div>
+        </div>
+      {% endfor %}
+      {% block conteudo %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<dialog id="modal" class="modal" aria-label="Detalhes">
+  <div id="modal-conteudo"></div>
+</dialog>
+<div id="toasts" role="status" aria-live="polite"></div>
+{% block scripts %}{% endblock %}
+</body>
+</html>

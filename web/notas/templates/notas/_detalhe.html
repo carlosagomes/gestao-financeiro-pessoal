@@ -1,0 +1,68 @@
+{% extends "core/modal.html" %}{% load gfp %}
+{% block modal_titulo %}{% if p.voltar %}<button type="button" class="botao botao-icone botao-fantasma np-voltar" data-url="{{ p.voltar }}" onclick="GFP.abrirModal(this.dataset.url)" title="Voltar" aria-label="Voltar">{% icone "arrow_back" %}</button>{% endif %}{{ titulo }}{% endblock %}
+{% block modal_subtitulo %}<div class="texto-3">{{ periodo_texto }}</div>{% endblock %}
+{% block modal_corpo %}
+<div class="np-controles">
+  <form class="linha-fim" hx-get="{% url 'notas:detalhe' %}" hx-target="#modal-conteudo" hx-trigger="change">
+    {% for nome, valor in ocultos.items %}<input type="hidden" name="{{ nome }}" value="{{ valor }}">{% endfor %}
+    <div class="campo">
+      <span class="rotulo">Período</span>
+      <div class="segmentado">
+        <label><input type="radio" name="escopo" value="pagina"{% if p.escopo == "pagina" %} checked{% endif %}><span>Período da página</span></label>
+        <label><input type="radio" name="escopo" value="tudo"{% if p.escopo == "tudo" %} checked{% endif %}><span>Todo o histórico</span></label>
+      </div>
+    </div>
+    <div class="campo">
+      <span class="rotulo">Agrupar por</span>
+      <div class="segmentado">
+        <label><input type="radio" name="grao" value="dia"{% if p.grao == "dia" %} checked{% endif %}><span>Dia</span></label>
+        <label><input type="radio" name="grao" value="mes"{% if p.grao == "mes" %} checked{% endif %}><span>Mês</span></label>
+        <label><input type="radio" name="grao" value="ano"{% if p.grao == "ano" %} checked{% endif %}><span>Ano</span></label>
+      </div>
+    </div>
+  </form>
+</div>
+
+{% if vazio %}
+<div class="cartao vazio">{% icone "event_busy" %}Nenhuma compra de {{ periodo_texto }}.<br>Escolha "Todo o histórico" para ver as anteriores.</div>
+{% else %}
+<div class="grade g-4">
+  {% include "core/_kpi.html" with rotulo="Total" valor=total|brl icone="payments" cor="azul" %}
+  {% include "core/_kpi.html" with rotulo="Compras" valor=compras icone="shopping_cart" detalhe=compras_detalhe %}
+  {% include "core/_kpi.html" with rotulo="Ticket médio" valor=ticket|brl icone="shopping_bag" %}
+  {% include "core/_kpi.html" with rotulo="Média por mês" valor=media_mes|brl icone="calendar_month" detalhe=meses_detalhe %}
+</div>
+
+<section class="cartao">
+  <div class="cartao-cabecalho"><h2>Linha do tempo por {{ grao_nome }}</h2></div>
+  {% grafico fig_tempo 300 %}
+</section>
+
+<div class="grade g-2">
+  {% for r in rankings %}
+  <section class="cartao">
+    <div class="cartao-cabecalho"><h2>{{ r.titulo }}</h2></div>
+    {% grafico r.fig r.altura clique=r.clique %}
+  </section>
+  {% endfor %}
+</div>
+
+{% if fig_produtos %}
+<section class="cartao">
+  <div class="cartao-cabecalho">
+    <h2>O que mais comprei</h2>
+    <div class="descricao">Pelo valor pago, já com desconto. Clique num produto para ver como o preço dele variou, compra a compra, em todas as lojas.</div>
+  </div>
+  {% grafico fig_produtos altura_produtos clique=clique_produto %}
+</section>
+{% endif %}
+
+<section class="cartao">
+  <div class="cartao-cabecalho">
+    <h2>Compra por compra</h2>
+    <div class="descricao">{% if p.tipo == "forma" %}Valor pago nesta forma (uma nota pode ter sido paga com duas). {% endif %}Clique numa compra para ver a nota completa.</div>
+  </div>
+  <div class="np-lt">{% include "notas/_compras.html" %}</div>
+</section>
+{% endif %}
+{% endblock %}

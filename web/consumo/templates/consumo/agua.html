@@ -1,0 +1,59 @@
+{% extends "core/base.html" %}{% load static gfp %}
+{% block titulo %}Água · Sanepar{% endblock %}
+{% block cabeca %}<link rel="stylesheet" href="{% static 'consumo/consumo.css' %}">{% endblock %}
+{% block cabecalho %}Água · Sanepar{% endblock %}
+{% block subtitulo %}{% include "consumo/_sincronizacao.html" with nome="Sanepar" %}{% endblock %}
+{% block acoes %}{% url 'consumo:agua_enviar' as url_enviar %}{% include "consumo/_botao_enviar.html" with url=url_enviar classe="no-topo" %}{% endblock %}
+
+{% block conteudo %}
+{% include "consumo/_erro_sincronizacao.html" with nome="Sanepar" %}
+{% if not faturas %}
+  <div class="cartao vazio">{% icone "water_drop" %}
+    <p>Nenhuma fatura da Sanepar ainda.</p>
+    <p class="texto-3">Cadastre o acesso em Configurações para buscar as faturas sozinho, ou envie o PDF da 2ª via.</p>
+    <div class="linha" style="justify-content:center">
+      {% url 'consumo:agua_enviar' as url_enviar %}{% include "consumo/_botao_enviar.html" with url=url_enviar classe="botao-primario" rotulo="Enviar PDF da conta" %}
+      <a class="botao" href="{% url 'integracoes:configuracoes' %}">{% icone "settings" %} Configurações</a>
+    </div>
+  </div>
+{% else %}
+  <div class="grade g-4">
+    {% include "core/_kpi.html" with rotulo=kpis.ultima_rotulo valor=kpis.ultima.valor_total|brl icone="receipt_long" detalhe=kpis.ultima_detalhe delta=kpis.delta delta_classe=kpis.delta_classe %}
+    {% include "core/_kpi.html" with rotulo="Média dos últimos 6 meses" valor=kpis.media|brl icone="functions" mini=kpis.mini_valores ajuda="Média das 6 faturas mais recentes; o minigráfico mostra todas." %}
+    {% include "core/_kpi.html" with rotulo="Consumo médio (6 meses)" valor=kpis.consumo_medio icone="water" mini=kpis.mini_consumo %}
+    {% include "core/_kpi.html" with rotulo="Custo por m³ (6 meses)" valor=kpis.custo_unidade icone="price_change" detalhe="Água, esgoto e serviços" ajuda="Inclui o esgoto, que a Sanepar cobra proporcional à água." %}
+  </div>
+
+  <div class="grade g-3-2">
+    <div class="cartao">
+      <div class="cartao-cabecalho"><h2>Valor das faturas</h2><div class="descricao">Água, esgoto e serviços de cada fatura, por mês de referência</div></div>
+      {% grafico fig_valores 320 %}
+    </div>
+    <div class="cartao">
+      <div class="cartao-cabecalho"><h2>Consumo (m³)</h2><div class="descricao">Medido no hidrômetro em cada leitura</div></div>
+      {% grafico fig_consumo 320 %}
+    </div>
+  </div>
+
+  {% include "consumo/_faturas_agua.html" %}
+
+  {% if faixas %}
+  <div class="cartao">
+    <div class="cartao-cabecalho"><h2>Faixas de consumo da última fatura</h2>
+      <div class="descricao">Como a Sanepar cobrou os {{ kpis.ultima.consumo_m3|default_if_none:"" }} m³ da fatura {{ kpis.ultima.referencia|slice:"5:" }}/{{ kpis.ultima.referencia|slice:":4" }}: cada faixa tem a sua tarifa, e o esgoto acompanha a água.</div>
+    </div>
+    <div class="tabela-rolagem">
+      <table class="tabela">
+        <thead><tr><th>Faixa</th><th class="dir">Volume</th><th class="dir">Tarifa por m³</th><th class="dir">Água</th><th class="dir">Esgoto</th></tr></thead>
+        <tbody>
+          {% for f in faixas %}
+          <tr><td>{{ f.faixa }}</td><td class="valor">{{ f.volume|default_if_none:"—" }} m³</td><td class="valor">{% if f.tarifa is not None %}{{ f.tarifa|brl }}{% else %}<span class="texto-3">mínimo</span>{% endif %}</td>
+            <td class="valor">{{ f.agua|brl }}</td><td class="valor">{{ f.esgoto|brl }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+{% endif %}
+{% endblock %}

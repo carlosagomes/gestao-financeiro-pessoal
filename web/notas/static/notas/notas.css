@@ -1,0 +1,111 @@
+/* Notas Paraná e Produtos: só o que é destas páginas (cores sempre pelos tokens de static/css/app.css). */
+
+/* período no topo */
+.np-periodo { display: flex; align-items: center; gap: 6px; color: var(--texto-3); }
+.np-periodo select { width: auto; height: 34px; padding-left: 10px; padding-right: 30px; background-position: calc(100% - 15px) 14px, calc(100% - 10px) 14px; }
+.np-periodo > span { font-size: 13px; }
+/* no celular o período ganha uma linha própria no topo (senão a página rola para o lado) */
+@media (max-width: 640px) {
+  .topo:has(.np-periodo) { flex-wrap: wrap; row-gap: 8px; }
+  .topo:has(.np-periodo) .topo-acoes { width: 100%; margin-left: 0; flex-wrap: nowrap; }
+  .np-periodo { flex: 1; min-width: 0; }
+  .np-periodo > .icone { display: none; }
+  .np-periodo select { flex: 1; min-width: 0; }
+}
+
+/* placar */
+.np-placar { padding-bottom: 14px; }
+.np-placar .cartao-cabecalho { margin-bottom: 10px; }
+.np-placar-itens { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.np-placar-item { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.np-placar-icone { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; flex: none; background: var(--verde-suave); color: var(--verde); }
+.np-placar-rotulo { font-size: 12px; color: var(--texto-3); }
+.np-placar-valor { font-size: 17px; font-weight: 700; letter-spacing: -.01em; }
+@media (max-width: 860px) { .np-placar-itens { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* atalho para Produtos */
+.np-atalho { display: flex; align-items: center; gap: 14px; color: var(--texto); padding: 14px 18px; transition: border-color .12s, background .12s; }
+.np-atalho:hover { text-decoration: none; border-color: var(--primaria); background: var(--superficie-2); }
+.np-atalho b { display: block; }
+.np-atalho small { display: block; }
+.np-atalho-icone { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; flex: none; background: var(--primaria-suave); color: var(--primaria); }
+.np-atalho-seta { margin-left: auto; color: var(--texto-3); }
+
+/* tabela das notas */
+input.np-busca-tabela { width: 260px; height: 32px; }
+@media (max-width: 640px) { .cartao-cabecalho .acoes { margin-left: 0; width: 100%; } input.np-busca-tabela { width: 100%; } }
+.np-icone-inline { font-size: 15px; color: var(--texto-3); vertical-align: -2px; }
+.tabulator-row .tabulator-cell.np-editavel { cursor: text; }
+.tabulator-row .tabulator-cell.np-editavel:hover { box-shadow: inset 0 -2px 0 var(--borda-forte); }
+.np-abrir { font-size: 18px; color: var(--texto-3); }
+.tabulator-row:hover .np-abrir { color: var(--primaria); }
+#tabela-notas .tabulator-row { cursor: pointer; }
+
+/* regras */
+.np-expandir { display: flex; align-items: center; gap: 8px; background: none; border: 0; padding: 0; font: inherit; color: var(--texto); cursor: pointer; }
+.np-expandir .icone { color: var(--texto-3); }
+.np-expandir .np-seta { transition: transform .15s; }
+.np-expandir[aria-expanded="true"] .np-seta { transform: rotate(180deg); }
+input.np-filtro-regras { width: 240px; height: 34px; }
+.np-regras { display: flex; flex-direction: column; gap: 6px; max-height: 460px; overflow: auto; padding-right: 4px; }
+.np-regra { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 36px; gap: 8px; align-items: center; }
+.np-regra input { height: 34px; }
+.np-regra-cabecalho { font-size: 12px; font-weight: 600; color: var(--texto-2); position: sticky; top: 0; background: var(--superficie); z-index: 1; padding-bottom: 2px; }
+
+/* modais */
+.np-voltar { width: 32px; height: 32px; margin: -4px 6px -4px -8px; vertical-align: middle; }
+.np-controles { display: flex; align-items: flex-end; gap: 12px 20px; flex-wrap: wrap; }
+.np-controles .segmentado span { padding: 6px 12px; font-size: 13px; }
+.np-juntar { flex: 1; min-width: 240px; max-width: 520px; }
+
+/* compra por compra: cada compra abre a nota */
+.np-lt { display: flex; flex-direction: column; }
+@media (min-width: 861px) { .np-lt { max-height: 620px; overflow-y: auto; padding-right: 6px; } }
+.np-lt-item { width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; border-left: 2px solid var(--borda); cursor: pointer; border-radius: 0 var(--raio-p) var(--raio-p) 0; }
+.np-lt-item:hover { background: var(--superficie-2); }
+.np-lt-item:focus-visible { outline: 3px solid var(--foco); outline-offset: -3px; }
+.np-lt-item .lt-dia, .np-lt-item .lt-titulo, .np-lt-item .lt-sub { display: block; }
+.np-lt-texto { min-width: 0; }
+.np-lt-item .lt-valor { padding-right: 8px; }
+.np-mais { padding: 14px 0 0 18px; }
+
+/* nota completa */
+.np-nota-cabecalho { padding: 14px 18px; }
+.np-dados { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 18px; margin: 0; }
+.np-dados .largo { grid-column: span 3; }
+.np-dados .duplo { grid-column: span 2; }
+.np-dados dt { font-size: 12px; color: var(--texto-3); }
+.np-dados dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }
+.np-chave { font-size: 13px; letter-spacing: .02em; }
+@media (max-width: 640px) { .np-dados { grid-template-columns: 1fr 1fr; } .np-dados .largo, .np-dados .duplo { grid-column: span 2; } }
+.np-pagamentos { display: flex; flex-direction: column; gap: 6px; }
+.np-pagamento { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid var(--borda); border-radius: var(--raio-p); background: var(--superficie); }
+.np-pagamento .icone { color: var(--texto-3); }
+.np-pagamento b { margin-left: auto; }
+
+/* produtos */
+.np-filtros { display: grid; grid-template-columns: minmax(200px, 2fr) minmax(140px, 1fr) minmax(140px, 1fr) auto auto; gap: 12px 14px; align-items: end; position: relative; }
+#produtos-carregando { position: absolute; top: 10px; right: 12px; }
+.np-periodo-campos { display: flex; align-items: center; gap: 6px; }
+.np-periodo-campos select { width: 112px; }
+.np-periodo-campos span { color: var(--texto-3); font-size: 13px; }
+.np-filtro-chave { height: 38px; font-size: 13px; }
+@media (max-width: 1200px) { .np-filtros { grid-template-columns: repeat(3, minmax(0, 1fr)); } .np-filtro-busca { grid-column: span 3; } }
+@media (max-width: 640px) {
+  .np-filtros { grid-template-columns: 1fr 1fr; }
+  .np-filtro-busca, .np-filtros > .campo:nth-child(4), .np-filtro-chave { grid-column: span 2; }
+  .np-periodo-campos select { flex: 1; width: auto; }
+}
+.np-resultado { gap: 20px; }
+.np-sobe { color: var(--vermelho); }
+.np-desce { color: var(--verde); }
+.np-spark { color: var(--primaria); display: inline-flex; }
+.np-tabela-produtos .tabulator-row { cursor: pointer; }
+/* cabeçalhos compactos: a seta de ordenação ocupa menos e títulos de duas palavras quebram a linha */
+.tabulator.np-tabela-produtos .tabulator-header .tabulator-col.tabulator-sortable .tabulator-col-title { padding-right: 16px; }
+.tabulator.np-tabela-produtos .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-sorter { right: 0; }
+.tabulator.np-tabela-produtos .tabulator-header .tabulator-col .tabulator-col-content { padding: 8px; }
+.np-tabela-produtos .tabulator-cell { padding: 6px 8px !important; }
+.np-tabela-produtos .tabulator-frozen.tabulator-frozen-left { border-right: 1px solid var(--borda-forte); }
+.girando { animation: girar 1s linear infinite; }
+.np-lt .lt-item::before { box-shadow: 0 0 0 3px var(--superficie); }

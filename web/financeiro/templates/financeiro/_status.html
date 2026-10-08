@@ -1,0 +1,4 @@
+{% load gfp %}{# include "financeiro/_status.html" with status=m.status pendentes=m.pendentes #}
+{% if status == "lancado" %}<span class="etiqueta verde">{% icone "check_circle" %}Lançado</span>
+{% elif status == "pendente" %}<span class="etiqueta laranja">{% icone "hourglass_top" %}Pendente ({{ pendentes }})</span>
+{% elif status == "previsao" %}<span class="etiqueta roxo">{% icone "event" %}Previsão</span>{% endif %}

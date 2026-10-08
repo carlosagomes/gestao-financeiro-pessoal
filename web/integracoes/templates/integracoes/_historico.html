@@ -1,0 +1,35 @@
+{% load gfp %}{# Histórico (30 mais recentes); recarrega ao sincronizar e, com tarefa em andamento, a cada 5 s. #}
+<div class="cartao" id="historico" hx-get="{% url 'integracoes:historico' %}"
+     hx-trigger="sincronizou from:body{% if tem_ativa %}, every 5s{% endif %}" hx-swap="outerHTML">
+  <div class="cartao-cabecalho">
+    <h2>Histórico de sincronizações</h2>
+    <div class="descricao">As 30 mais recentes, de todos os serviços. Clique numa linha para ver o registro.</div>
+  </div>
+  {% if tarefas %}
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <thead><tr>
+        <th>Quando</th><th>Serviço</th><th>Origem</th><th>Situação</th>
+        <th class="dir">Novas</th><th class="dir">Atualizadas</th><th class="dir">Erros</th><th>Duração</th><th>Mensagem</th>
+      </tr></thead>
+      <tbody>
+      {% for l in tarefas %}
+        <tr class="clicavel" data-url="{% url 'integracoes:tarefa' l.tarefa.pk %}" onclick="GFP.abrirModal(this.dataset.url, {tamanho: 'medio'})">
+          <td>{{ l.quando }}</td>
+          <td>{{ l.tarefa.get_servico_display }}{% if l.tarefa.tipo != "sincronizar" %} <small>({{ l.tarefa.tipo }})</small>{% endif %}</td>
+          <td>{{ l.origem }}</td>
+          <td><span class="etiqueta {{ l.cor }}">{{ l.tarefa.get_status_display }}</span></td>
+          <td class="valor">{{ l.novas|default_if_none:"—" }}</td>
+          <td class="valor">{{ l.atualizadas|default_if_none:"—" }}</td>
+          <td class="valor">{{ l.erros|default_if_none:"—" }}</td>
+          <td>{{ l.duracao|default:"—" }}</td>
+          <td class="mensagem" title="{{ l.tarefa.mensagem }}">{% if l.tarefa.status == "rodando" %}{{ l.tarefa.progresso }}{% else %}{{ l.tarefa.mensagem|default:"—" }}{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="vazio">{% icone "history" %}Nenhuma sincronização ainda</div>
+  {% endif %}
+</div>

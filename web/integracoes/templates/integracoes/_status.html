@@ -1,0 +1,24 @@
+{% load gfp %}{# Menu lateral: uma linha por serviço e o "Atualizar agora". Recarrega a cada 15 s (base.html). #}
+{% for l in linhas %}
+  {% if l.link %}
+  <a class="linha" href="{% url 'integracoes:configuracoes' %}" title="{{ l.titulo }}" style="color:inherit;text-decoration:none">
+    <span class="ponto {{ l.ponto }}"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ l.texto }}</span>
+  </a>
+  {% else %}
+  <div class="linha" title="{{ l.titulo }}">
+    <span class="ponto {{ l.ponto }}"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ l.texto }}</span>
+  </div>
+  {% endif %}
+{% empty %}
+  <a class="linha" href="{% url 'integracoes:configuracoes' %}" style="color:inherit">
+    <span class="ponto"></span><span>Nenhuma conexão · configurar</span>
+  </a>
+{% endfor %}
+{% if disponivel %}
+<button class="botao botao-pequeno" type="button" hx-post="{% url 'integracoes:atualizar' %}" hx-swap="none"
+        style="width:100%;margin-top:6px;background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.16)"
+        {% if ocupado %}disabled{% endif %}
+        title="Busca as notas novas do Nota Paraná e as contas da Sanepar. O Nota Paraná aceita uma sessão por vez: se você estiver no site pelo navegador, sairá de lá.">
+  {% icone "sync" %} {% if ocupado %}Atualizando…{% else %}Atualizar agora{% endif %}
+</button>
+{% endif %}

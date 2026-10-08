@@ -1,0 +1,37 @@
+{% extends "core/modal.html" %}{% load gfp l10n %}
+{% block modal_titulo %}{{ categoria|default:"Sem categoria" }}{% endblock %}
+{% block modal_subtitulo %}<div class="texto-3">Saídas de {{ ano|unlocalize }}, mês a mês</div>{% endblock %}
+{% block modal_corpo %}
+{% if not t.n %}
+<div class="cartao vazio">{% icone "inbox" %}Nenhuma saída nesta categoria em {{ ano|unlocalize }}</div>
+{% else %}
+<div class="grade g-3 kpis-compactos">
+  {% include "core/_kpi.html" with rotulo="Pago no ano" valor=t.saidas|brl cor="vermelho" icone="north_east" detalhe=detalhes.pago %}
+  {% include "core/_kpi.html" with rotulo="A pagar" valor=t.a_pagar|brl cor="laranja" icone="schedule" detalhe=detalhes.a_pagar %}
+  {% include "core/_kpi.html" with rotulo="Média por mês" valor=media|brl cor="azul" icone="functions" detalhe=detalhes.media %}
+</div>
+<section class="cartao">
+  <div class="cartao-cabecalho"><h2>Mês a mês</h2></div>
+  {% grafico fig 260 %}
+</section>
+<section class="cartao">
+  <div class="cartao-cabecalho"><h2>Lançamentos</h2><span class="etiqueta cinza">{{ t.n }}</span></div>
+  <div>
+    {% for m in meses %}
+    <div class="lt-mes">{{ m.nome }}<span>{{ m.total|brl }}</span></div>
+    {% for l in m.itens %}
+    <div class="lt-item{% if not l.pago %} pendente{% endif %}">
+      <div class="lt-dia">{{ l.data|date:"d/m" }}<small>{{ l.data|date:"D" }}</small></div>
+      <div>
+        <div class="lt-titulo">{{ l.descricao|default:l.categoria }}</div>
+        <div class="lt-sub">{{ l.banco|default:"sem banco" }} · {% if l.pago %}pago{% else %}a pagar{% endif %}</div>
+      </div>
+      <div class="lt-valor {% if l.pago %}cor-saida{% else %}cor-pagar{% endif %}">{{ l.valor|brl }}</div>
+    </div>
+    {% endfor %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+<div class="linha"><a class="botao" href="{{ url_lancamentos }}">{% icone "edit_note" %}Ver em Lançamentos</a></div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "core/modal.html" %}{% load gfp l10n %}
+{% block modal_titulo %}Histórico de alterações{% endblock %}
+{% block modal_subtitulo %}<div class="texto-3">As últimas {{ linhas|length }} alterações e exclusões de lançamentos, com a origem de cada uma</div>{% endblock %}
+{% block modal_corpo %}
+{% if not linhas %}
+<div class="cartao vazio">{% icone "history" %}Nenhuma alteração registrada ainda</div>
+{% else %}
+<div class="tabela-rolagem alta">
+  <table class="tabela tabela-historico">
+    <thead><tr><th>Quando</th><th>Lançamento</th><th>Campo</th><th>Alteração</th><th>Origem</th></tr></thead>
+    <tbody>
+      {% for x in linhas %}
+      <tr>
+        <td>{{ x.h.quando|date:"d/m/Y H:i" }}</td>
+        <td class="quebra">
+          {% if x.lancamento %}{{ x.lancamento.data|date:"d/m/Y" }} · {{ x.lancamento.categoria }}{% if x.lancamento.descricao %} · {{ x.lancamento.descricao|truncatechars:40 }}{% endif %}
+          {% else %}<span class="texto-3">#{{ x.h.lancamento_id|unlocalize }} (excluído)</span>{% endif %}
+        </td>
+        <td>{% if x.h.campo == "criado" %}<span class="etiqueta verde">Criado</span>{% elif x.h.campo == "excluído" %}<span class="etiqueta vermelho">Excluído</span>{% else %}{{ x.campo }}{% endif %}</td>
+        <td class="quebra alteracao">
+          {% if x.h.campo == "criado" %}{{ x.depois }}
+          {% elif x.h.campo == "excluído" %}<span class="antes">{{ x.antes }}</span>
+          {% else %}<span class="antes">{{ x.antes }}</span> {% icone "arrow_forward" %} <b>{{ x.depois }}</b>{% endif %}
+        </td>
+        <td><span class="etiqueta cinza">{{ x.h.origem|default:"—" }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

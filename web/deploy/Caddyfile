@@ -1,0 +1,16 @@
+# HTTPS automático (Let's Encrypt) na frente do Django. Troque o domínio em DOMINIO no .env.
+# O Caddy troca o X-Forwarded-For que vem do cliente pelo IP real: o Django confia nele (bloqueio de login por IP).
+{$DOMINIO} {
+	encode zstd gzip
+	# O maior envio é o PDF de uma conta (até 10 MB, conferido no Django): corta antes uploads gigantes.
+	request_body {
+		max_size 12MB
+	}
+	reverse_proxy web:8000
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy same-origin
+		-Server
+	}
+}

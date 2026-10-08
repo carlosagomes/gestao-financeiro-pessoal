@@ -1,0 +1,31 @@
+{% load static gfp %}<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}{% endblock %} · {{ NOME_SISTEMA }}</title>
+  <link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block" rel="stylesheet">
+  <script>try { const t = localStorage.getItem("tema"); if (t) document.documentElement.dataset.tema = t; } catch (e) {}</script>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+<div class="acesso">
+  <section class="acesso-vitrine">
+    <div class="marca" style="padding:0"><span class="marca-logo">{% icone "trending_up" %}</span>
+      <span class="marca-nome">Gestão Financeira<small>Pessoal</small></span></div>
+    <div>
+      <h1>Seu dinheiro, do mês todo, num lugar só.</h1>
+      <p>Lançamentos do mês, notas fiscais do Nota Paraná e contas de água e luz conferidas sozinhas.</p>
+    </div>
+    <div class="acesso-recursos">
+      <div>{% icone "receipt_long" %}<span><b>Planilha que se confere sozinha</b>Entradas, saídas, o que já foi pago e o que falta pagar.</span></div>
+      <div>{% icone "shopping_cart" %}<span><b>Cada compra, item por item</b>Onde você mais gasta, como pagou e quanto o preço de cada produto variou.</span></div>
+      <div>{% icone "bolt" %}<span><b>Água e luz em dia</b>Faturas da Sanepar e da Copel lidas do PDF e ligadas ao lançamento do mês.</span></div>
+      <div>{% icone "lock" %}<span><b>Senhas cifradas</b>As senhas dos sites ficam cifradas e você pode apagar tudo quando quiser.</span></div>
+    </div>
+  </section>
+  <section class="acesso-form"><div class="acesso-caixa">{% block caixa %}{% endblock %}</div></section>
+</div>
+</body>
+</html>

@@ -1,0 +1,55 @@
+{% extends "core/base.html" %}{% load static gfp %}
+{% block titulo %}Luz · Copel{% endblock %}
+{% block cabeca %}<link rel="stylesheet" href="{% static 'consumo/consumo.css' %}">{% endblock %}
+{% block cabecalho %}Luz · Copel{% endblock %}
+{% block subtitulo %}{% include "consumo/_sincronizacao.html" with nome="Copel" %}{% endblock %}
+{% block acoes %}{% url 'consumo:luz_enviar' as url_enviar %}{% include "consumo/_botao_enviar.html" with url=url_enviar classe="no-topo" %}{% endblock %}
+
+{% block conteudo %}
+{% url 'consumo:luz_enviar' as url_enviar %}
+{% if proxima.atrasada %}
+  <div class="aviso alerta proxima-conta">{% icone "bolt" %}
+    <div>
+      <b>A conta de {{ proxima.referencia|mes_rotulo|lower }} saiu em {{ proxima.data|date:"d/m" }} e ainda não foi importada.</b>
+      A Copel pede o "Não sou um robô" no login: entre pela janela de Configurações para buscar a fatura, ou envie o PDF da 2ª via.
+      <div class="linha">
+        <a class="botao botao-pequeno botao-primario" href="{% url 'integracoes:configuracoes' %}">{% icone "login" %} Buscar na Copel</a>
+        {% include "consumo/_botao_enviar.html" with url=url_enviar classe="botao-pequeno" rotulo="Enviar PDF da conta" %}
+      </div>
+    </div>
+  </div>
+{% else %}
+  {% include "consumo/_erro_sincronizacao.html" with nome="Copel" %}
+{% endif %}
+
+{% if not faturas %}
+  <div class="cartao vazio">{% icone "bolt" %}
+    <p>Nenhuma fatura da Copel ainda.</p>
+    <p class="texto-3">Conecte a Copel em Configurações para buscar as faturas, ou envie o PDF da 2ª via.</p>
+    <div class="linha" style="justify-content:center">
+      {% include "consumo/_botao_enviar.html" with url=url_enviar classe="botao-primario" rotulo="Enviar PDF da conta" %}
+      <a class="botao" href="{% url 'integracoes:configuracoes' %}">{% icone "settings" %} Configurações</a>
+    </div>
+  </div>
+{% else %}
+  <div class="grade g-4">
+    {% include "core/_kpi.html" with rotulo=kpis.ultima_rotulo valor=kpis.ultima.valor_total|brl icone="receipt_long" detalhe=kpis.ultima_detalhe delta=kpis.delta delta_classe=kpis.delta_classe %}
+    {% include "core/_kpi.html" with rotulo="Média dos últimos 6 meses" valor=kpis.media|brl icone="functions" mini=kpis.mini_valores ajuda="Média das 6 faturas mais recentes; o minigráfico mostra todas." %}
+    {% include "core/_kpi.html" with rotulo="Consumo médio (6 meses)" valor=kpis.consumo_medio icone="electric_meter" mini=kpis.mini_consumo %}
+    {% include "core/_kpi.html" with rotulo="Custo por kWh (6 meses)" valor=kpis.custo_unidade icone="price_change" detalhe="Tudo incluído, com impostos" ajuda="Tudo incluído: energia, uso do sistema, bandeira, iluminação pública e impostos." %}
+  </div>
+
+  <div class="grade g-3-2">
+    <div class="cartao">
+      <div class="cartao-cabecalho"><h2>Do que é feita a conta</h2><div class="descricao">Itens da nota fiscal de energia; os impostos (ICMS, PIS, COFINS) já estão dentro de cada item</div></div>
+      {% if tem_itens %}{% grafico fig_itens 320 %}{% else %}<div class="vazio">{% icone "bar_chart" %}As faturas ainda não têm os itens do PDF.</div>{% endif %}
+    </div>
+    <div class="cartao">
+      <div class="cartao-cabecalho"><h2>Consumo (kWh)</h2><div class="descricao">Energia medida em cada leitura; a bandeira do período aparece ao passar o mouse</div></div>
+      {% grafico fig_consumo 320 %}
+    </div>
+  </div>
+
+  {% include "consumo/_faturas_luz.html" %}
+{% endif %}
+{% endblock %}

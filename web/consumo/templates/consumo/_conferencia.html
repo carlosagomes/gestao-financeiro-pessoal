@@ -1,0 +1,7 @@
+{% load gfp %}{# Célula "Lançamento": c = {valor, mes, confere, diferenca}; mostrar_mes para a Sanepar (mês anterior). #}
+<span class="linha conferencia">
+  {% if c.valor is None %}<span class="texto-3" title="Sem lançamento de {{ categoria }} em {{ c.mes|mes_rotulo|lower }}">—</span>
+  {% elif c.confere %}<span class="etiqueta verde" title="Lançamento de {{ categoria }} de {{ c.mes|mes_rotulo|lower }} igual à fatura">{% icone "check_circle" %}{{ c.valor|brl }}</span>
+  {% else %}<span class="etiqueta laranja" title="Lançamento de {{ categoria }} de {{ c.mes|mes_rotulo|lower }} difere da fatura em {{ c.diferenca|brl }}">{% icone "warning" %}{{ c.valor|brl }}</span>{% endif %}
+  {% if mostrar_mes %}<small>em {{ c.mes|mes_curto }}</small>{% endif %}
+</span>

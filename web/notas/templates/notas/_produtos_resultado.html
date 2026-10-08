@@ -1,0 +1,40 @@
+{% load gfp %}
+<div id="produtos-resultado" class="pilha np-resultado">
+{% if not total %}
+  <div class="cartao vazio">{% icone "search_off" %}Nenhum produto com esses filtros.</div>
+{% else %}
+  <div class="grade g-4">
+    {% include "core/_kpi.html" with rotulo="Produtos diferentes" valor=total icone="category" cor="azul" %}
+    {% include "core/_kpi.html" with rotulo="Vezes comprados" valor=vezes icone="shopping_cart" detalhe="cada item de nota conta uma vez" %}
+    {% include "core/_kpi.html" with rotulo="Gasto em produtos" valor=gasto|brl icone="payments" detalhe="valor pago, já com desconto" %}
+    {% include "core/_kpi.html" with rotulo="Ficaram mais caros" valor=caros icone="trending_up" cor="vermelho" detalhe=caros_detalhe ajuda=caros_ajuda %}
+  </div>
+
+  <div class="grade g-2">
+    <section class="cartao">
+      <div class="cartao-cabecalho">
+        <h2 class="np-sobe">▲ Mais subiram</h2>
+        <div class="descricao">Comprados {{ minimo }} vezes ou mais: último preço pago × primeiro.</div>
+      </div>
+      {% if fig_subiram %}{% grafico fig_subiram altura_subiram clique=url_produto %}
+      {% else %}<div class="vazio">{% icone "check_circle" %}Nenhum produto subiu.</div>{% endif %}
+    </section>
+    <section class="cartao">
+      <div class="cartao-cabecalho">
+        <h2 class="np-desce">▼ Mais caíram</h2>
+        <div class="descricao">Comprados {{ minimo }} vezes ou mais: último preço pago × primeiro.</div>
+      </div>
+      {% if fig_cairam %}{% grafico fig_cairam altura_cairam clique=url_produto %}
+      {% else %}<div class="vazio">{% icone "remove" %}Nenhum produto caiu.</div>{% endif %}
+    </section>
+  </div>
+
+  <section class="cartao">
+    <div class="cartao-cabecalho">
+      <h2>Todos os produtos <span class="etiqueta cinza">{{ total }}</span></h2>
+      <div class="descricao">Clique num produto para ver o histórico de preço. Variação: último preço pago × primeiro, no período.</div>
+    </div>
+    <div class="np-tabela-produtos" data-tabela-produtos data-url="{{ url_dados }}" data-historico="{{ url_produto }}"></div>
+  </section>
+{% endif %}
+</div>

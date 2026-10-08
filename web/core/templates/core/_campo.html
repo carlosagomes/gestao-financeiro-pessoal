@@ -1,0 +1,10 @@
+{# include "core/_campo.html" with campo=form.email #}
+<div class="campo">
+  {% if campo.field.widget.input_type == "checkbox" %}
+    <label class="chave">{{ campo }} <span>{{ campo.label }}</span></label>
+  {% else %}
+    <label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}
+  {% endif %}
+  {% if campo.help_text %}<span class="ajuda">{{ campo.help_text }}</span>{% endif %}
+  {% for erro in campo.errors %}<span class="erro">{{ erro }}</span>{% endfor %}
+</div>

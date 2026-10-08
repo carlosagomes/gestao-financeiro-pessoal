@@ -1,0 +1,133 @@
+{% extends "core/base.html" %}{% load static gfp %}
+{% block titulo %}Notas Paraná{% endblock %}
+{% block cabecalho %}Notas Paraná{% endblock %}
+{% block subtitulo %}{% if not vazio %}<div class="subtitulo">{{ periodo.texto }} · {{ quantidade }} nota{{ quantidade|pluralize }}</div>{% endif %}{% endblock %}
+{% block cabeca %}
+<link rel="stylesheet" href="{% static 'notas/notas.css' %}">
+<script src="{% static 'notas/notas.js' %}" defer></script>
+{% endblock %}
+
+{% block acoes %}{% if not vazio %}
+<form method="get" class="np-periodo" aria-label="Período">
+  {% icone "date_range" %}
+  <select name="de" aria-label="Do mês" onchange="this.form.submit()">
+    {% for valor, rotulo in periodo.opcoes %}<option value="{{ valor }}"{% if valor == periodo.de %} selected{% endif %}>{{ rotulo }}</option>{% endfor %}
+  </select>
+  <span>a</span>
+  <select name="ate" aria-label="Até o mês" onchange="this.form.submit()">
+    {% for valor, rotulo in periodo.opcoes %}<option value="{{ valor }}"{% if valor == periodo.ate %} selected{% endif %}>{{ rotulo }}</option>{% endfor %}
+  </select>
+  {% if periodo.de != todo_periodo.de or periodo.ate != todo_periodo.ate %}
+  <a class="botao botao-pequeno botao-fantasma" href="?de={{ todo_periodo.de }}&amp;ate={{ todo_periodo.ate }}">Tudo</a>
+  {% endif %}
+  <noscript><button class="botao botao-pequeno">Aplicar</button></noscript>
+</form>
+{% endif %}{% endblock %}
+
+{% block conteudo %}
+<div class="aviso info">{% icone "info" %}<div>As notas detalham o consumo e <b>não</b> somam nas saídas do Resumo: essas compras já estão dentro da fatura do cartão ou do débito.</div></div>
+
+{% if placar %}
+<section class="cartao np-placar" aria-label="Meu placar no Nota Paraná">
+  <div class="cartao-cabecalho">
+    <h2>Meu placar no Nota Paraná</h2>
+    {% if placar_em %}<div class="acoes"><small>atualizado em {{ placar_em|date:"d/m/Y H:i" }}</small></div>{% endif %}
+  </div>
+  <div class="np-placar-itens">
+    {% for rotulo, valor, simbolo in placar %}
+    <div class="np-placar-item">
+      <span class="np-placar-icone">{% icone simbolo %}</span>
+      <div><div class="np-placar-rotulo">{{ rotulo }}</div><div class="np-placar-valor num">{{ valor }}</div></div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if vazio %}
+<div class="cartao vazio">{% icone "receipt_long" %}Nenhuma nota importada ainda.<br>
+  <a href="{% url 'integracoes:configuracoes' %}">Conecte o Nota Paraná em Configurações</a> para trazer as notas.</div>
+{% else %}
+
+<div class="grade g-4">
+  {% include "core/_kpi.html" with rotulo="Total em notas" valor=total|brl icone="receipt_long" mini=fig_mini cor="azul" %}
+  {% include "core/_kpi.html" with rotulo="Notas" valor=quantidade icone="description" detalhe=periodo.texto %}
+  {% include "core/_kpi.html" with rotulo="Ticket médio" valor=ticket|brl icone="shopping_bag" detalhe="valor médio por nota" %}
+  {% include "core/_kpi.html" with rotulo="Créditos gerados" valor=creditos|brl icone="savings" cor="verde" detalhe="crédito do Nota Paraná nas notas do período" %}
+</div>
+
+<section class="cartao">
+  <div class="cartao-cabecalho">
+    <h2>Consumo por mês</h2>
+    <div class="descricao">Valor das notas por categoria. As cores não mudam com o período: as 7 categorias que mais pesam no histórico, o resto em "Outros".</div>
+  </div>
+  {% grafico fig_mes 340 %}
+</section>
+
+<div>
+  <div class="grade g-3">
+    {% for g in clicaveis %}
+    <section class="cartao">
+      <div class="cartao-cabecalho"><h2>{{ g.titulo }}</h2></div>
+      {% if g.vazio %}<div class="vazio">{% icone "inbox" %}Nada no período</div>
+      {% else %}{% grafico g.fig g.altura clique=g.clique %}{% endif %}
+    </section>
+    {% endfor %}
+  </div>
+  <p class="legenda-dica">{% icone "touch_app" %}Clique numa barra para abrir a linha do tempo daquela categoria, loja ou forma de pagamento.</p>
+</div>
+
+<a class="cartao np-atalho" href="{% url 'notas:produtos' %}">
+  <span class="np-atalho-icone">{% icone "trending_up" %}</span>
+  <span><b>Produtos</b><small>Tudo o que você comprou e como o preço de cada um variou, loja a loja</small></span>
+  {% icone "chevron_right" "np-atalho-seta" %}
+</a>
+
+<section class="cartao" x-data="{ mudou: false }" @categoria-salva.window="mudou = true">
+  <div class="cartao-cabecalho">
+    <h2>Notas do período</h2>
+    <div class="acoes">
+      <a class="botao botao-pequeno botao-primario" x-show="mudou" x-cloak href="">{% icone "refresh" %}Atualizar gráficos</a>
+      <input type="search" id="notas-busca" class="np-busca-tabela" placeholder="Buscar loja, cidade ou categoria" aria-label="Buscar nas notas">
+    </div>
+    <div class="descricao">Clique numa nota para ver os itens. Troque a categoria na própria tabela: a escolhida à mão vale mais que as regras ({% icone "auto_awesome" "np-icone-inline" %} = categoria pela regra).</div>
+  </div>
+  <div id="tabela-notas" data-api="{% url 'notas:api_categoria' %}" data-nota="{% url 'notas:nota' 0 %}"></div>
+</section>
+{{ linhas|json_script:"notas-linhas" }}
+{{ categorias|json_script:"notas-categorias" }}
+
+<section class="cartao" x-data="regrasCategoria" data-api="{% url 'notas:api_regras' %}">
+  <div class="cartao-cabecalho">
+    <button type="button" class="np-expandir" @click="aberto = !aberto" :aria-expanded="aberto.toString()" aria-controls="regras-corpo">
+      {% icone "rule" %}<h2>Regras de categorização</h2>
+      <span class="etiqueta cinza" x-text="regras.length">{{ regras|length }}</span>
+      {% icone "expand_more" "np-seta" %}
+    </button>
+    <div class="descricao">Se o nome do estabelecimento (razão social ou nome fantasia) contém o trecho, a nota recebe a categoria. Quando mais de uma regra serve, o trecho mais longo vence. A categoria escolhida à mão na tabela acima tem prioridade.</div>
+  </div>
+  <div id="regras-corpo" class="pilha" x-show="aberto" x-cloak>
+    <div class="linha">
+      <input type="search" x-model="filtro" placeholder="Filtrar regras" aria-label="Filtrar regras" class="np-filtro-regras">
+      <button type="button" class="botao botao-pequeno" @click="adicionar()">{% icone "add" %}Nova regra</button>
+      <span class="empurra"></span>
+      <span class="texto-3" x-show="mudou" x-cloak>Alterações não salvas</span>
+      <button type="button" class="botao botao-primario" @click="salvar()" :disabled="!mudou || salvando">{% icone "save" %}Salvar regras</button>
+    </div>
+    <div class="np-regras" x-ref="lista" role="table" aria-label="Regras de categorização">
+      <div class="np-regra np-regra-cabecalho" role="row"><span role="columnheader">Trecho do nome</span><span role="columnheader">Categoria</span><span></span></div>
+      <template x-for="r in visiveis" :key="r.id">
+        <div class="np-regra" role="row">
+          <input type="text" x-model="r.padrao" maxlength="80" placeholder="ex.: MUFFATO" aria-label="Trecho do nome">
+          <input type="text" x-model="r.categoria" maxlength="60" placeholder="ex.: Mercado" list="regras-categorias" aria-label="Categoria">
+          <button type="button" class="botao botao-icone botao-fantasma" @click="remover(r)" title="Remover regra" aria-label="Remover regra">{% icone "delete" %}</button>
+        </div>
+      </template>
+      <div class="vazio" x-show="!visiveis.length">Nenhuma regra.</div>
+    </div>
+    <datalist id="regras-categorias">{% for c in categorias %}<option value="{{ c }}">{% endfor %}</datalist>
+  </div>
+</section>
+{{ regras|json_script:"notas-regras" }}
+{% endif %}
+{% endblock %}

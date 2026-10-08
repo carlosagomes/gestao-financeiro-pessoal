@@ -1,0 +1,25 @@
+{% extends "core/modal.html" %}{% load gfp %}
+{% block modal_titulo %}Enviar PDF da conta{% endblock %}
+{% block modal_subtitulo %}<div class="texto-3">Conta de {{ conta }} · {{ nome }}</div>{% endblock %}
+{% block modal_corpo %}
+<form method="post" action="{{ acao }}" enctype="multipart/form-data" class="pilha"
+      x-data="{ enviando: false, erro: '' }" @submit="enviando = true">{% csrf_token %}
+  <p class="texto-2 mb-0">
+    {% if servico == "sanepar" %}Baixe a 2ª via no site ou no app da Sanepar e envie o PDF aqui. Valores, leitura e consumo
+      saem do arquivo, e o lançamento de Água do mês anterior à referência é ajustado.
+    {% else %}Baixe a 2ª via no site da Copel e envie o PDF aqui. Valores, consumo e bandeira saem do arquivo, e o
+      lançamento de Luz do mês de referência é ajustado.{% endif %}
+  </p>
+  <div class="campo">
+    <label for="pdf-conta">PDF da conta</label>
+    <input type="file" id="pdf-conta" name="pdf" accept="application/pdf,.pdf" required
+           @change="erro = ($event.target.files[0]?.size || 0) > 10485760 ? 'O arquivo passa de 10 MB.' : ''">
+    <span class="ajuda">Só PDF, até 10 MB. Se a fatura já existir, ela é atualizada.</span>
+    <span class="erro" x-show="erro" x-text="erro" x-cloak></span>
+  </div>
+  <div class="linha">
+    <button class="botao botao-primario" :disabled="enviando || erro !== ''">{% icone "upload_file" %}<span x-text="enviando ? 'Lendo o PDF…' : 'Enviar'">Enviar</span></button>
+    <button type="button" class="botao botao-fantasma" onclick="GFP.fecharModal()">Cancelar</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% load gfp %}{# Parte de cima do cartão de um serviço; recarrega ao sincronizar e, com tarefa em andamento, a cada 4 s. #}
+<div class="servico-estado" id="servico-{{ s.servico }}" hx-get="{% url 'integracoes:servico' s.servico %}"
+     hx-trigger="sincronizou from:body{% if s.ativa %}, every 4s{% endif %}" hx-swap="outerHTML">
+  <div class="cartao-cabecalho mb-0">
+    <span class="servico-icone">{% icone s.icone %}</span>
+    <h2>{{ s.nome }}</h2>
+    <div class="acoes"><span class="etiqueta {{ s.situacao_cor }}">{{ s.situacao_rotulo }}</span></div>
+    <div class="descricao">{{ s.explicacao }}</div>
+  </div>
+
+  <dl class="servico-dados">
+    <div><dt>{{ s.rotulo_login }}</dt><dd class="num">{{ s.login_mascarado|default:"—" }}</dd></div>
+    {% if s.servico == "sanepar" %}
+    <div><dt>Sessão</dt><dd>
+      {% if s.sessao_valida %}salva em {{ s.sessao.atualizado_em|date:"d/m H:i" }}
+      {% elif s.sessao %}expirou: use Conectar
+      {% else %}ainda não conectada{% endif %}
+    </dd></div>
+    {% elif s.servico == "copel" %}
+    <div><dt>Sessão</dt><dd>
+      {% if s.sessao_valida %}conectada agora (dura minutos)
+      {% elif s.sessao %}expirada (normal)
+      {% else %}ainda não conectada{% endif %}
+    </dd></div>
+    {% endif %}
+    <div><dt>Última sincronização</dt><dd>
+      {% if s.ultima %}{{ s.ultima_quando }} ·
+        {% if s.ultima.status == "ok" %}<span class="cor-entrada">ok</span>{% if s.novas is not None %} · {{ s.novas }} nova{{ s.novas|pluralize }}{% endif %}{% if s.erros %} · {{ s.erros }} erro{{ s.erros|pluralize }}{% endif %}
+        {% else %}<span class="cor-saida">falhou</span>{% endif %}
+      {% else %}nunca{% endif %}
+    </dd></div>
+    {% if s.servico == "copel" and s.proxima %}
+    <div><dt>Próxima conta</dt><dd>{{ s.proxima.mes }}, por volta de {{ s.proxima.data|date:"d/m" }}</dd></div>
+    {% endif %}
+  </dl>
+
+  {% if s.ativa %}
+    <div class="aviso info">{% icone "sync" %}<div><b>{% if s.ativa.status == "rodando" %}Sincronizando…{% else %}Na fila{% endif %}</b>
+      {% if s.ativa.progresso %}<br><small>{{ s.ativa.progresso }}</small>{% endif %}</div></div>
+  {% elif s.situacao == "recusada" %}
+    <div class="aviso erro">{% icone "key_off" %}<div>O site recusou a senha. Salve a senha certa abaixo; até lá a atualização automática fica parada.</div></div>
+  {% elif s.ultima.status == "erro" %}
+    <div class="aviso erro">{% icone "error" %}<div>{{ s.ultima.mensagem|default:"A última sincronização falhou." }}</div></div>
+  {% endif %}
+  {% if s.servico == "copel" and s.proxima.saiu and not s.ativa %}
+    <div class="aviso alerta">{% icone "bolt" %}<div>A conta de {{ s.proxima.mes }} saiu ({{ s.proxima.data|date:"d/m" }}). Use Conectar para baixá-la.</div></div>
+  {% endif %}
+
+  <div class="linha">
+    {% if s.tem_janela %}
+      <a class="botao botao-pequeno{% if not s.sessao_valida %} botao-primario{% endif %}" href="{{ s.conectar_url }}"
+         title="Abre a janela do site: você resolve o captcha{% if s.servico == 'sanepar' %} e o código{% endif %}; o resto é automático.">
+        {% icone "login" %} Conectar (resolver captcha)</a>
+    {% endif %}
+    <button class="botao botao-pequeno" type="button" hx-post="{% url 'integracoes:sincronizar' s.servico %}" hx-swap="none"
+            {% if not s.pode_sincronizar %}disabled{% endif %}
+            title="{% if s.servico == 'notaparana' %}Busca as notas novas agora. Se você estiver no site pelo navegador, sairá de lá.{% elif s.servico == 'copel' %}Disponível logo depois de Conectar.{% else %}Usa a sessão salva.{% endif %}">
+      {% icone "sync" %} Sincronizar agora</button>
+    {% if s.servico == "notaparana" and s.credencial %}
+      <button class="botao botao-pequeno botao-fantasma" type="button" hx-post="{% url 'integracoes:sincronizar' s.servico %}"
+              hx-vals='{"tipo": "reprocessar"}' hx-swap="none" {% if s.ativa %}disabled{% endif %}
+              title="Relê as notas já baixadas, sem acessar o site.">{% icone "restart_alt" %} Reler notas salvas</button>
+    {% endif %}
+  </div>
+</div>

@@ -1,0 +1,69 @@
+/* Janela remota de login (integracoes/janela.html). */
+.janela { display: flex; flex-direction: column; gap: 16px; }
+
+.janela-passos {
+  margin: 0; padding: 0; list-style: none; counter-reset: passo; display: grid; gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+.janela-passos li {
+  counter-increment: passo; display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px;
+  background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio-p); color: var(--texto-2);
+  font-size: 13px;
+}
+.janela-passos li::before {
+  content: counter(passo); flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--primaria-suave); color: var(--primaria); font-weight: 700; font-size: 12px;
+}
+
+.janela-barra {
+  display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; padding: 10px 14px;
+  border-bottom: 1px solid var(--borda);
+}
+.janela-barra .acoes { margin-left: auto; display: flex; gap: 6px; }
+.janela-status { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; }
+.janela-status .ponto { width: 9px; height: 9px; border-radius: 50%; background: var(--cinza); flex: none; }
+.janela-status[data-estado="conectando"] .ponto, .janela-status[data-estado="reconectando"] .ponto,
+.janela-status[data-estado="salvando"] .ponto { background: var(--laranja); animation: pulsar 1.2s infinite; }
+.janela-status[data-estado="ao_vivo"] .ponto { background: var(--verde); box-shadow: 0 0 0 3px var(--verde-suave); }
+.janela-status[data-estado="sucesso"] .ponto { background: var(--verde); }
+.janela-status[data-estado="erro"] .ponto { background: var(--vermelho); }
+.janela-quem, .janela-dica { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--texto-3); }
+.janela-quem .icone { font-size: 16px; }
+.janela-dica.digitando { color: var(--primaria); font-weight: 600; }
+
+.janela-tela {
+  position: relative; display: flex; justify-content: center; align-items: flex-start; padding: 12px;
+  min-height: 340px; background: #0f1724; border-radius: 0 0 var(--raio) var(--raio); overflow: hidden;
+}
+.janela-tela canvas {
+  display: block; max-width: 100%; background: #fff; border-radius: 6px; box-shadow: 0 4px 18px rgba(0, 0, 0, .35);
+  cursor: default; touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.janela-tela.focada canvas { outline: 3px solid var(--foco); outline-offset: 2px; }
+.janela-teclado {
+  position: absolute; left: 12px; top: 12px; width: 1px !important; height: 1px !important; padding: 0 !important;
+  border: 0 !important; opacity: 0; font-size: 16px; pointer-events: none; caret-color: transparent;
+}
+.janela-cobertura {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; color: #e7ebf2; background: rgba(15, 23, 36, .72); font-weight: 500; text-align: center; padding: 20px;
+}
+.janela-cobertura .icone { font-size: 32px; }
+.girando { animation: girar 1s linear infinite; }
+.janela-so-toque { display: none; }
+@media (pointer: coarse) { .janela-so-toque { display: inline-flex; } }
+
+.janela-fim { display: flex; gap: 16px; align-items: flex-start; }
+.janela-fim h2 { font-size: 18px; margin-bottom: 4px; }
+.janela-fim-icone .icone { font-size: 40px; color: var(--verde); }
+.janela-fim[data-tipo="erro"] .janela-fim-icone .icone { color: var(--vermelho); }
+.janela-fim[data-tipo="fechado"] .janela-fim-icone .icone { color: var(--cinza); }
+.janela-seguranca { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--texto-3); margin: 0; }
+.janela-seguranca .icone { font-size: 16px; }
+
+@media (max-width: 640px) {
+  .janela-passos { grid-template-columns: 1fr; }
+  .janela-tela { padding: 6px; }
+  .janela-barra .acoes { margin-left: 0; width: 100%; }
+  .janela-dica { display: none; }
+}

@@ -1,0 +1,8 @@
+{% load gfp %}{# include "core/_kpi.html" with rotulo="Entradas" valor=x|brl cor="verde" icone="south_west" detalhe="..." mini=fig_json delta="+3,2%" delta_classe="sobe-ruim" ajuda="tooltip" #}
+<div class="cartao kpi {{ cor }}"{% if ajuda %} title="{{ ajuda }}"{% endif %}>
+  <div class="kpi-rotulo">{% if icone %}{% icone icone %}{% endif %}{{ rotulo }}</div>
+  <div class="kpi-valor">{{ valor }}</div>
+  {% if delta %}<span class="delta {{ delta_classe|default:'neutro' }}">{{ delta }}</span>{% endif %}
+  {% if detalhe %}<div class="kpi-detalhe">{{ detalhe }}</div>{% endif %}
+  {% if mini %}{% grafico mini 34 classe="mini" %}{% endif %}
+</div>

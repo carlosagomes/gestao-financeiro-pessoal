@@ -1,0 +1,35 @@
+{% extends "core/base.html" %}{% load gfp %}
+{% block titulo %}Perfil{% endblock %}
+{% block cabecalho %}Perfil{% endblock %}
+{% block subtitulo %}<div class="subtitulo">Seus dados, senha e preferências</div>{% endblock %}
+{% block conteudo %}
+<div class="grade g-2">
+  <form method="post" class="cartao pilha">{% csrf_token %}
+    <div class="cartao-cabecalho"><h2>Dados da conta</h2></div>
+    {% include "core/_campo.html" with campo=form.nome %}
+    {% include "core/_campo.html" with campo=form.email %}
+    {% include "core/_campo.html" with campo=form.senha_atual %}
+    {% include "core/_campo.html" with campo=form.atualizacao_automatica %}
+    {% include "core/_campo.html" with campo=form.hora_atualizacao %}
+    <div><button class="botao botao-primario" name="salvar_perfil">{% icone "save" %} Salvar</button></div>
+  </form>
+  <form method="post" class="cartao pilha">{% csrf_token %}
+    <div class="cartao-cabecalho"><h2>Trocar senha</h2></div>
+    {% include "core/_campo.html" with campo=senha.old_password %}
+    {% include "core/_campo.html" with campo=senha.new_password1 %}
+    {% include "core/_campo.html" with campo=senha.new_password2 %}
+    <div><button class="botao" name="trocar_senha">{% icone "key" %} Trocar senha</button></div>
+  </form>
+</div>
+<div class="cartao" x-data="{ aberto: {{ abrir_exclusao|yesno:'true,false' }} }">
+  <div class="cartao-cabecalho"><h2>Excluir conta</h2>
+    <div class="descricao">Apaga para sempre todos os seus dados: lançamentos, notas, faturas, senhas salvas e arquivos.</div>
+    <div class="acoes"><button class="botao botao-perigo" type="button" @click="aberto = !aberto">{% icone "delete_forever" %} Excluir minha conta</button></div>
+  </div>
+  <form method="post" action="{% url 'contas:excluir_conta' %}" class="form-grade" x-show="aberto" x-cloak>{% csrf_token %}
+    {% include "core/_campo.html" with campo=excluir.senha %}
+    {% include "core/_campo.html" with campo=excluir.confirmacao %}
+    <div class="campo" style="justify-content:flex-end"><button class="botao botao-perigo">Excluir definitivamente</button></div>
+  </form>
+</div>
+{% endblock %}

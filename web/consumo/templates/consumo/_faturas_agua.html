@@ -1,0 +1,36 @@
+{% load gfp %}{# Também é a resposta do botão "Ajustar" (HTMX troca o cartão inteiro). #}
+<div class="cartao" id="faturas-agua">
+  <div class="cartao-cabecalho">
+    <h2>Faturas e lançamentos de Água</h2>
+    <div class="acoes">
+      <button class="botao botao-pequeno" hx-post="{% url 'consumo:agua_ajustar' %}" hx-target="#faturas-agua" hx-swap="outerHTML">
+        {% icone "sync_alt" %} Ajustar lançamentos de Água pelas faturas</button>
+    </div>
+    <div class="descricao">A conta que vence no dia 23 entra no lançamento de Água do mês anterior (a fatura 02/2026, que vence 23/02, fica em janeiro). Cada fatura nova ajusta o lançamento sozinha; o Pago que você marcou nunca é desfeito.</div>
+  </div>
+  <div class="tabela-rolagem alta">
+    <table class="tabela">
+      <thead><tr>
+        <th>Referência</th><th>Vencimento</th><th>Leitura</th><th class="dir">Consumo</th><th class="dir">Água</th>
+        <th class="dir">Esgoto</th><th class="dir">Serviços</th><th class="dir">Total</th><th>Situação</th><th>Lançamento</th><th><span class="oculto">PDF</span></th>
+      </tr></thead>
+      <tbody>
+        {% for l in linhas %}{% with f=l.fatura %}
+        <tr>
+          <td class="negrito">{{ f.referencia|slice:"5:" }}/{{ f.referencia|slice:":4" }}</td>
+          <td>{{ f.vencimento|date:"d/m/Y"|default:"—" }}</td>
+          <td>{% if f.leitura_anterior is not None and f.leitura_atual is not None %}{{ f.leitura_anterior }} → {{ f.leitura_atual }}{% else %}<span class="texto-3">—</span>{% endif %}</td>
+          <td class="valor">{% if f.consumo_m3 is not None %}{{ f.consumo_m3 }} m³{% else %}—{% endif %}</td>
+          <td class="valor">{{ f.valor_agua|brl }}</td>
+          <td class="valor">{{ f.valor_esgoto|brl }}</td>
+          <td class="valor">{{ f.valor_servicos|brl }}</td>
+          <td class="valor negrito">{{ f.valor_total|brl }}</td>
+          <td>{% if f.situacao == "Paga" %}<span class="etiqueta verde">{% icone "check" %}Paga</span>{% elif f.situacao %}<span class="etiqueta laranja">{% icone "schedule" %}{{ f.situacao }}</span>{% else %}<span class="texto-3">—</span>{% endif %}</td>
+          <td>{% include "consumo/_conferencia.html" with c=l.lancamento categoria="Água" mostrar_mes=True %}</td>
+          <td>{% if f.pdf %}<a class="botao botao-icone botao-fantasma botao-pequeno" href="{% url 'consumo:agua_pdf' f.pk %}" title="Baixar o PDF" aria-label="Baixar o PDF da fatura {{ f.referencia }}">{% icone "download" %}</a>{% endif %}</td>
+        </tr>
+        {% endwith %}{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
