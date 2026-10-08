@@ -8,7 +8,7 @@ Sistema multiusuário (SaaS) de finanças pessoais. Ele substituiu o app Streaml
 - **Telas:** templates Django, **HTMX** para partes parciais e o modal, **Alpine.js** para estado pequeno de UI, **Plotly.js** para gráficos (montados em Python), **Tabulator** para tabelas editáveis ou grandes.
 - **Background:** `manage.py trabalhador`, uma fila no próprio banco (modelo `integracoes.Tarefa`).
 - **Janela remota de login** (captcha/2FA): Channels (WebSocket) mais Playwright no servidor.
-- **Python 3.11:** `web/.venv/bin/python`. Não use o `.venv` da pasta de cima.
+- **Python 3.11:** `.venv/bin/python`, na raiz do projeto.
 
 ## Regras que não se negociam
 
@@ -95,7 +95,6 @@ integracoes/   Credencial, SessaoServico, Tarefa; cripto; trabalhador; coletores
 ## Rodando
 
 ```bash
-cd web
 docker compose up -d db                                  # PostgreSQL
 .venv/bin/python manage.py migrate
 .venv/bin/python manage.py runserver 8000                # http://localhost:8000

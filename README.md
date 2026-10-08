@@ -7,13 +7,12 @@ Feito em Django + PostgreSQL. Ele substituiu o app antigo em Streamlit, que foi 
 ## Acessar
 
 ```bash
-cd web
 docker compose up -d --build          # banco + site + trabalhador
 ```
 
 - Abra **http://localhost:8000**.
 - Entre com a sua conta, já com todos os dados do sistema antigo.
-- O e-mail e a senha provisória estão em `web/dados/acesso-inicial.txt`, que só o seu usuário do Mac consegue ler.
+- O e-mail e a senha provisória estão em `dados/acesso-inicial.txt`, que só o seu usuário do Mac consegue ler.
 - Troque a senha em **Perfil → Trocar senha** e depois apague o arquivo.
 - A conta `demo@gfp.local` é uma cópia dos dados para testes; pode excluí-la em Administração.
 
@@ -49,12 +48,12 @@ docker compose up -d --build          # banco + site + trabalhador
 - **Arquivos:** PDFs e páginas das notas ficam fora da web, só saem por views que conferem o dono e são gravados legíveis só pelo sistema (0600).
 - **Containers:** site e trabalhador rodam sem root (usuário `app`, uid 1000), inclusive o Chromium da janela remota.
 - **Exclusão:** "Excluir minha conta" apaga tudo da pessoa, inclusive os arquivos no disco.
-- **Chave de cifragem:** **guarde o `web/.env` com cuidado**. Sem a `APP_ENCRYPTION_KEY`, as senhas salvas não podem ser lidas e precisam ser cadastradas de novo.
+- **Chave de cifragem:** **guarde o `.env` com cuidado**. Sem a `APP_ENCRYPTION_KEY`, as senhas salvas não podem ser lidas e precisam ser cadastradas de novo.
 
 ## Publicar na internet
 
 1. **Servidor:** um com Docker, por exemplo uma VPS de 2 GB de RAM. Cada janela de conexão aberta usa cerca de 300 MB.
-2. **Arquivos:** copie a pasta `web/` e o `.env`. Gere chaves novas para produção (veja o `.env.example`).
+2. **Arquivos:** copie o projeto e o `.env`. Gere chaves novas para produção (veja o `.env.example`).
 3. **`.env`:**
    - `DJANGO_DEBUG=0` e `DJANGO_HTTPS=1`;
    - `DOMINIO=financas.seudominio.com.br`;
